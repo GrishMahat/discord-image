@@ -1,0 +1,39 @@
+{
+  "name": "discord-image",
+  "version": "0.0.1",
+  "description": "Generate and modify images for use with Discord.js",
+  "main": "./dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "lint": "eslint 'src/**/*.{ts,tsx}'"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "@types/gifencoder": "^2.0.3",
+    "eslint": "^9.22.0",
+    "globals": "^16.0.0",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.26.1"
+  },
+  "dependencies": {
+    "canvas": "^3.1.0",
+    "discord.js": "^14.18.0",
+    "gifencoder": "^2.0.1",
+    "jimp": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": [
+    "discord",
+    "discord.js",
+    "image",
+    "generation",
+    "canvas"
+  ],
+  "author": "norysight",
+  "license": "MIT"
+}
