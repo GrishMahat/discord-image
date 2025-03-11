@@ -8,9 +8,11 @@
     "build": "tsc && mkdir -p dist/assets && cp -r src/assets/* dist/assets/",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "lint": "eslint 'src/**/*.{ts,tsx}'"
+    "lint": "eslint 'src/**/*.{ts,tsx}'",
+    "release": "changeset"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.28.1",
     "@eslint/js": "^9.22.0",
     "@types/gifencoder": "^2.0.3",
     "eslint": "^9.22.0",
