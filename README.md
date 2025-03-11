@@ -1,3 +1,6 @@
+# Discord Image Generation 
+This package is a  recreation of [discord-image-generation](https://www.npmjs.com/package/discord-image-generation).
+
 # Discord Image Generation
 
 A TypeScript library for generating and modifying images for use with Discord.js.
@@ -13,7 +16,7 @@ A TypeScript library for generating and modifying images for use with Discord.js
 ## Installation
 
 ```bash
-npm install discord-image-generation
+npm install discord-image
 ```
 
 ## Requirements
@@ -109,7 +112,7 @@ To set up this project for development:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/discord-image-generation.git
+git clone https://github.com/GrishMahat/discord-image-generation.git
 cd discord-image-generation
 
 # Install dependencies

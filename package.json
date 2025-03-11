@@ -1,11 +1,11 @@
 {
-  "name": "discord-image",
+  "name": "@norysight/discord-image",
   "version": "0.0.1",
   "description": "Generate and modify images for use with Discord.js",
   "main": "./dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && mkdir -p dist/assets && cp -r src/assets/* dist/assets/",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "lint": "eslint 'src/**/*.{ts,tsx}'"
