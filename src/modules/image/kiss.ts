@@ -4,7 +4,12 @@ import { Jimp } from "jimp";
 import { join } from "path";
 import { ImageInput } from "../../types";
 import { validateURL } from "../../utils/utils";
-
+/**
+ * Creates a kiss meme from two images
+ * @param image - The image URL or buffer to use for the kiss
+ * @param image2 - The image URL or buffer to use for the kiss
+ * @returns Promise<Buffer> - The generated kiss image
+ */
 export const kiss = async (
   image: ImageInput,
   image2: ImageInput

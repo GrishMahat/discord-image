@@ -4,6 +4,12 @@ import { Jimp } from "jimp";
 import { validateURL } from "../../utils/utils";
 import { ImageInput } from "../../types";
 
+/**
+ * Applies a blur effect to an image
+ * @param image - The image URL or buffer to apply the blur effect to
+ * @param level - The level of blur to apply (1-10)
+ * @returns Promise<Buffer> - The generated blurred image
+ */
 export const blur = async (
   image: ImageInput,
   level: number = 10

@@ -10,6 +10,9 @@ import { validateURL } from "../../utils/utils";
  *
  * @param image - The image URL or buffer to process
  * @param options - Optional configuration settings
+ * @param options.resize - Whether to resize the image
+ * @param options.enhance - Whether to enhance the image integration
+ * @param options.opacity - Opacity of the user image (0-1)
  * @returns A Promise that resolves with a Buffer containing the processed image
  */
 export const affect = async (

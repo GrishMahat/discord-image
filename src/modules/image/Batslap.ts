@@ -2,6 +2,12 @@ import {Jimp} from "jimp";
 import { validateURL } from "../../utils/utils";
 import { ImageInput } from "../../types";
 
+/**
+ * Creates a batslap meme from two images
+ * @param image1 - The image URL or buffer to use for the batslap
+ * @param image2 - The image URL or buffer to use for the batslap
+ * @returns Promise<Buffer> - The generated batslap image
+ */
 
 export const Batslap = async   (image1: ImageInput, image2: ImageInput) :Promise<Buffer> => { 
     if (!image1) throw new Error("You must provide an image as a first argument.");
