@@ -4,6 +4,10 @@ tests/
 test.ts
 examples/
 
+# Package manager
+.pnpm-debug.log
+.pnpm-store/
+
 # TypeScript config
 tsconfig.json
 *.tsbuildinfo

@@ -17,6 +17,7 @@ import { wanted } from "./modules/image/wanted";
 import { kiss } from "./modules/image/kiss";
 import { tatoo } from "./modules/image/tatoo";
 import { Batslap } from "./modules/image/Batslap";
+import { ad } from "./modules/image/ad";
 
 export {
   blur,
@@ -31,6 +32,7 @@ export {
   tatoo,
   kiss,
   Batslap,
+  ad,
 };
 
 // Group everything into an object and export as default
@@ -47,6 +49,7 @@ const dig = {
   tatoo,
   kiss,
   Batslap,
+  ad,
 };
 
 export default dig;

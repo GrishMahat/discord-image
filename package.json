@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Generate and modify images for use with Discord.js",
   "main": "./dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc && mkdir -p dist/assets && cp -r src/assets/* dist/assets/",
     "dev": "tsc --watch",
@@ -37,5 +37,10 @@
     "canvas"
   ],
   "author": "norysight",
-  "license": "MIT"
+  "license": "MIT",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "canvas"
+    ]
+  }
 }

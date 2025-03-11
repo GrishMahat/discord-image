@@ -3,6 +3,10 @@ node_modules/
 .pnp
 .pnp.js
 
+# pnpm specific
+.pnpm-debug.log
+.pnpm-store/
+
 # Production build
 dist/
 build/
