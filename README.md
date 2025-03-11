@@ -125,6 +125,16 @@ npm run dev
 npm run build
 ```
 
+## Contributing and Releases
+
+This project uses [semantic-release](https://github.com/semantic-release/semantic-release) for automated versioning and package publishing. Releases are automatically triggered by commits to the main branch that follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+
+- `fix:` commits trigger a PATCH release (e.g., 1.0.0 → 1.0.1)
+- `feat:` commits trigger a MINOR release (e.g., 1.0.0 → 1.1.0)
+- `BREAKING CHANGE:` in the commit footer or a `!` after the type/scope triggers a MAJOR release (e.g., 1.0.0 → 2.0.0)
+
+For more details on how to contribute, please see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## License
 
 MIT 

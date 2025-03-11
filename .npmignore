@@ -1,5 +1,56 @@
-/node_modules/
-/src/
+# Source
+src/
+tests/
 test.ts
+examples/
 
+# Package manager
+.pnpm-debug.log
+.pnpm-store/
+
+# TypeScript config
 tsconfig.json
+*.tsbuildinfo
+
+# Development configs
+.github/
+.vscode/
+.idea/
+.eslintrc
+.eslintignore
+.prettierrc
+.prettierignore
+eslint.config.mjs
+jest.config.js
+
+# Git
+.git/
+.gitignore
+
+# CI
+.travis.yml
+.gitlab-ci.yml
+azure-pipelines.yml
+.circleci/
+
+# Docs
+docs/
+wiki/
+CONTRIBUTING.md
+CHANGELOG.md
+*.md
+!README.md
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Development
+coverage/
+.nyc_output/
+.env*
+.DS_Store
+
+# Dependencies
+node_modules/
