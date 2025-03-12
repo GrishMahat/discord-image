@@ -1,8 +1,9 @@
-# Changelog
+---
+"@norysight/discord-image": patch
+---
 
-## [0.0.2] - 2023-12 - Feature Release
-### Added
 - Comprehensive Image Filter Suite
+
   - Blur: Adjustable gaussian blur effect
   - Pride: Rainbow overlay filter
   - Greyscale: Black and white conversion
@@ -10,20 +11,22 @@
   - Sepia: Vintage photo tone
 
 - Dynamic Animations
+
   - Blink: Smooth blinking animation generator
   - Triggered: Classic "triggered" meme effect with shake and red overlay
 
 - Advanced Meme Generation
+
   - Social Media Templates
+
     - Lisa Presentation: Custom text on Lisa Simpson template
     - Advertisement: Create mock advertisements
     - Heartbreaking News: Breaking news style meme
-  
-  - Character-Based Memes  
+
+  - Character-Based Memes
     - Batman Slap: Classic Batman slapping Robin format
     - Bob Ross: Place images in Bob Ross painting
     - Hitler: Historical figure meme template
-    
   - Reaction Memes
     - Affect: "This will affect my baby" format
     - Beautiful: Framed "beautiful" meme
@@ -31,14 +34,13 @@
     - Facepalm: Facepalm reaction image
     - Kiss: Generate kissing scene
     - Spank: Spanking meme template
-    
   - Status Effects
     - Jail: Add jail bar overlay
     - RIP: Create memorial gravestone
     - Wanted: Generate wanted poster
     - Trash: "This is trash" meme
-    
   - Stonks Series
+
     - Stonks: Original "stonks" meme
     - Not Stonks: Declining stonks variant
     - Double Stonks: Dual stonks format
@@ -48,11 +50,3 @@
     - Deep Fry: Deep fried meme effect
     - Snyder Cut: Snyder-style aspect ratio
     - Tattoo: Add tattoo overlay to images
-
-## [0.0.1] - 2023-11 - Initial Release
-### Added
-- Core Framework Implementation
-  - Modular architecture for image processing
-  - Support for URL and Buffer inputs
-  - Error handling and input validation
-  - Basic image manipulation capabilities

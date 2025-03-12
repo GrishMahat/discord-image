@@ -6,7 +6,7 @@ import { ImageInput } from "../../types";
 
 /**
  * Add ad add meme to an image
- * @param image - The image to add the meme to
+ * @param image  url or buffer - The image to add the meme to
  * @returns The image with the meme added
  */
 export const ad = async (image: ImageInput): Promise<Buffer> => {

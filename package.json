@@ -1,6 +1,6 @@
 {
   "name": "@norysight/discord-image",
-  "version": "0.1.1",
+  "version": "0.0.2",
   "description": "Generate and modify images for use with Discord.js",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -12,7 +12,9 @@
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "lint": "eslint 'src/**/*.{ts,tsx}'",
-    "release": "changeset"
+    "release": "changeset",
+    "version": "changeset version",
+    "publish": "npm run build && changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.28.1",
@@ -37,10 +39,24 @@
     "discord.js",
     "image",
     "generation",
-    "canvas"
+    "canvas",
+    "meme",
+    "filters",
+    "effects",
+    "manipulation",
+    "gif",
+    "animation"
   ],
   "author": "norysight",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GrishMahat/discord-image"
+  },
+  "bugs": {
+    "url": "https://github.com/GrishMahat/discord-image/issues"
+  },
+  "homepage": "https://github.com/GrishMahat/discord-image#readme",
   "pnpm": {
     "onlyBuiltDependencies": [
       "canvas"

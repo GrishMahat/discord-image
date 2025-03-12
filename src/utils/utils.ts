@@ -2,6 +2,7 @@
 
 import { get } from "https";
 import { ImageInput } from "../types";
+import { CanvasRenderingContext2D as NodeCanvasRenderingContext2D } from "canvas";
 
 export async function validateURL(url: ImageInput): Promise<Buffer | null> {
   if (!url) return null;
@@ -74,7 +75,7 @@ export async function applyText(
  * @param maxWidth The maximum width allowed
  */
 export async function wrapText(
-  ctx: CanvasRenderingContext2D,
+  ctx: NodeCanvasRenderingContext2D,
   text: string,
   maxWidth: number
 ): Promise<string[] | null> {

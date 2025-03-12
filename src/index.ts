@@ -22,6 +22,20 @@ import { beautiful } from "./modules/image/beautiful";
 import { bed } from "./modules/image/bed";
 import { clown } from "./modules/image/clown"
 import { hitler } from "./modules/image/hitler"
+import { trash } from "./modules/image/trash";
+import { stonk } from "./modules/image/stonk";
+import { spank } from "./modules/image/spank";
+import { snyder } from "./modules/image/snyder";
+import { rip } from "./modules/image/rip";
+import { notStonk } from "./modules/image/notStonk";
+import { lisaPresentation } from "./modules/image/lisaPresentation";
+import { jail } from "./modules/image/jail";
+import { heartbreaking } from "./modules/image/heartbreaking";
+import { facepalm } from "./modules/image/facepalm";
+import { doubleStonk } from "./modules/image/doubleStonk";
+import { confusedStonk } from "./modules/image/confusedStonk";
+import { deepfry } from "./modules/image/deepfry";
+import { bobross } from "./modules/image/bobross";
 export {
   blur,
   gay,
@@ -40,6 +54,20 @@ export {
   bed,
   clown,
   hitler,
+  trash,
+  stonk,
+  spank,
+  snyder,
+  rip,
+  notStonk,
+  lisaPresentation,
+  jail,
+  heartbreaking,
+  facepalm,
+  doubleStonk,
+  confusedStonk,
+  deepfry,
+  bobross,
 };
 
 // Group everything into an object and export as default
@@ -61,6 +89,20 @@ const dig = {
   bed,
   clown,
   hitler,
+  trash,
+  stonk,
+  spank,
+  snyder,
+  rip,
+  notStonk,
+  lisaPresentation,
+  jail,
+  heartbreaking,
+  facepalm,
+  doubleStonk,
+  confusedStonk,
+  deepfry,
+  bobross,
 };
 
 export default dig;
