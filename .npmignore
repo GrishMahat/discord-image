@@ -37,7 +37,6 @@ azure-pipelines.yml
 docs/
 wiki/
 CONTRIBUTING.md
-CHANGELOG.md
 *.md
 !README.md
 

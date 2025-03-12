@@ -1,6 +1,10 @@
 # Changelog
 
-## [0.0.2] - 2023-12 - Feature Release
+## [0.0.5] - 2024-01 - Feature Update
+### Added
+- Delete Image Effect: New module for creating "Delete this" meme template
+
+## [0.0.2] - 2025-3 - Feature Release
 ### Added
 - Comprehensive Image Filter Suite
   - Blur: Adjustable gaussian blur effect
@@ -49,7 +53,7 @@
     - Snyder Cut: Snyder-style aspect ratio
     - Tattoo: Add tattoo overlay to images
 
-## [0.0.1] - 2023-11 - Initial Release
+## [0.0.1] - 2025-3 - Initial Release
 ### Added
 - Core Framework Implementation
   - Modular architecture for image processing
