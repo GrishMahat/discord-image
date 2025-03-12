@@ -36,6 +36,7 @@ import { doubleStonk } from "./modules/image/doubleStonk";
 import { confusedStonk } from "./modules/image/confusedStonk";
 import { deepfry } from "./modules/image/deepfry";
 import { bobross } from "./modules/image/bobross";
+import { Delete } from "./modules/image/delete";
 export {
   blur,
   gay,
@@ -68,6 +69,7 @@ export {
   confusedStonk,
   deepfry,
   bobross,
+  Delete
 };
 
 // Group everything into an object and export as default
@@ -103,6 +105,7 @@ const dig = {
   confusedStonk,
   deepfry,
   bobross,
+  Delete,
 };
 
 export default dig;
