@@ -1,6 +1,9 @@
 # Changelog
-
-## [0.0.5] - 2024-01 - Feature Update
+## [0.0.6] - 2025-03 - New Features
+### Added
+- Music Player Image Generator: Create dynamic music player visualizations with album art, progress bar, and animated controls
+- Quote Image Generator: Generate stylized quote images with customizable backgrounds, typography and decorative elements
+## [0.0.5] - 2023-31 - Feature Update
 ### Added
 - Delete Image Effect: New module for creating "Delete this" meme template
 

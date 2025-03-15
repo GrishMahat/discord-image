@@ -19,11 +19,11 @@ A TypeScript library for generating and modifying images for use with Discord.js
   - Heartbreaking, Facepalm
   - Double Stonk, Confused Stonk
   - Deepfry, Bob Ross
+  - Music Player Image Generator
 - Compatible with Discord.js v14+
 - Highly customizable image handling
 
 ## Installation
-
 ```bash
 # Using npm
 npm install discord-image-utils
@@ -114,6 +114,79 @@ Creates a "not stonks" meme with the image.
 Creates a Lisa Simpson presentation meme with custom text.
 
 ## Advanced Usage
+
+
+## Fun
+
+### Music Image Generator
+
+#### `Music(options: MusicImageOptions): Promise<Buffer>`
+Creates a stylized music player image with album art and progress bar, perfect for Discord music bots and rich presence displays.
+
+Options:
+- `image`: URL or path of album artwork
+- `title`: Song title 
+- `artist`: Artist name
+- `time`: Object containing:
+  - `currentTime`: Current playback time in seconds
+  - `totalTime`: Total song duration in seconds
+
+Example:
+
+```ts
+async function main() {
+  const res = await dig.Music({
+    image: img,
+    title: "Test",
+    artist: "Test",
+    time: {
+      currentTime: 10,
+      totalTime: 100,
+    },
+    progressBar: {
+      color: "#000000",
+      backgroundColor: "#ffffff"
+    },
+  });
+  fs.writeFileSync("test.png", res);
+  console.log("Done");
+}
+```
+
+### Quote Image Generator
+
+#### `quote(options: QuoteResponse): Promise<Buffer>`
+Creates a stylized quote image with elegant typography and visual effects.
+
+Options:
+- `quote`: The quote text
+- `author`: The quote author
+- `gradient`: Optional gradient background settings
+  - `type`: "linear" | "radial" 
+  - `colors`: Array of color strings for custom gradient
+- `pattern`: Optional pattern overlay settings
+  - `type`: "dots" | "lines" | "grid" | "waves" | "chevron"
+  - `opacity`: Pattern opacity (0-1)
+  - `scale`: Pattern size scaling factor
+
+Example:
+```ts
+async function main() {
+  const res = await dig.quote({
+    quote: "Test",
+    author: "Test",
+    gradient: {
+      type: "linear",
+      colors: ["#000000", "#ffffff"],
+    },
+    pattern: {
+      type: "dots",
+      opacity: 0.5,
+    },
+  });
+  fs.writeFileSync("test.png", res);
+}
+```
 
 ### Custom Options
 

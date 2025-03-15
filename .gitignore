@@ -44,3 +44,4 @@ pids
 
 # npm package files
 .npmrc
+test.png
