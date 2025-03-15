@@ -11,6 +11,9 @@ A TypeScript library for generating and modifying images for use with Discord.js
 - Apply filters (blur, grayscale, sepia, invert, gay)
 - Create animated effects (blink, triggered)
 - Wide variety of meme generators and image manipulations:
+  - Drake Meme Generator (NEW!)
+  - Wave Effect Animation (NEW!)
+  - Glitch Effect Filter (NEW!)
   - Affect, Wanted, Kiss, Tatoo
   - Batslap, Ad, Beautiful, Bed
   - Clown, Hitler, Trash, Stonk/NotStonk
@@ -20,6 +23,7 @@ A TypeScript library for generating and modifying images for use with Discord.js
   - Double Stonk, Confused Stonk
   - Deepfry, Bob Ross
   - Music Player Image Generator
+  - Quote Image Generator with Custom Styles
 - Compatible with Discord.js v14+
 - Highly customizable image handling
 
@@ -118,74 +122,219 @@ Creates a Lisa Simpson presentation meme with custom text.
 
 ## Fun
 
+### Drake Meme Generator
+
+#### `drake(text1: string, text2: string, options?: DrakeOptions): Promise<Buffer>`
+Creates a Drake meme with customizable text and styling.
+
+Options:
+```typescript
+interface DrakeOptions {
+  fontSize?: number;        // Text size (default: 32)
+  textColor?: string;      // Text color (default: "#000000")
+  bold?: boolean;          // Use bold text (default: true)
+  maxWidth?: number;       // Max text width before wrapping (default: 300)
+  padding?: number;        // Text padding from edges (default: 20)
+}
+```
+
+Example:
+```typescript
+const drakeMeme = await drake(
+  "Using complex code",
+  "Using simple solutions",
+  {
+    fontSize: 36,
+    textColor: "#333333",
+    bold: true
+  }
+);
+```
+
+### Wave Effect
+
+#### `wave(image: ImageInput, options?: WaveOptions): Promise<Buffer>`
+Applies a wave distortion effect to an image.
+
+Options:
+```typescript
+interface WaveOptions {
+  amplitude?: number;     // Wave height (1-50, default: 10)
+  frequency?: number;     // Wave frequency (1-20, default: 5)
+  phase?: number;        // Wave phase (0-360, default: 0)
+  direction?: "horizontal" | "vertical" | "both";  // Wave direction (default: "both")
+}
+```
+
+Example:
+```typescript
+const wavedImage = await wave(imageUrl, {
+  amplitude: 15,
+  frequency: 8,
+  direction: "horizontal"
+});
+```
+
+### Glitch Effect
+
+#### `glitch(image: ImageInput, options?: GlitchOptions): Promise<Buffer>`
+Creates a glitch art effect with RGB channel shifts and noise.
+
+Options:
+```typescript
+interface GlitchOptions {
+  intensity?: number;      // Glitch intensity (1-10, default: 5)
+  scanLines?: boolean;     // Add scan lines effect (default: false)
+  colorShift?: boolean;    // Enable RGB channel shifting (default: true)
+  noiseAmount?: number;    // Amount of noise to add (0-1, default: 0.3)
+  seed?: number;          // Random seed for consistent results
+}
+```
+
+Example:
+```typescript
+const glitchedImage = await glitch(imageUrl, {
+  intensity: 7,
+  scanLines: true,
+  colorShift: true,
+  noiseAmount: 0.5
+});
+```
+
+
 ### Music Image Generator
 
 #### `Music(options: MusicImageOptions): Promise<Buffer>`
 Creates a stylized music player image with album art and progress bar, perfect for Discord music bots and rich presence displays.
 
 Options:
-- `image`: URL or path of album artwork
-- `title`: Song title 
-- `artist`: Artist name
-- `time`: Object containing:
-  - `currentTime`: Current playback time in seconds
-  - `totalTime`: Total song duration in seconds
+```typescript
+interface MusicImageOptions {
+  image: string;              // URL or path of album artwork
+  title: string;              // Song title
+  artist: string;             // Artist name
+  time: {
+    currentTime: number;      // Current playback time in seconds
+    totalTime: number;        // Total song duration in seconds
+  };
+  progressBar?: {
+    color?: string;           // Progress bar color (default: "#ffffff")
+    backgroundColor?: string; // Background color (default: "#000000")
+    width?: number;          // Bar width in pixels (default: 300)
+    height?: number;         // Bar height in pixels (default: 10)
+    rounded?: boolean;       // Rounded corners (default: true)
+  };
+  background?: {
+    type?: "blur" | "gradient" | "solid";  // Background style
+    color?: string;          // For solid background
+    gradient?: string[];     // For gradient background
+    blurAmount?: number;     // For blur background (1-20)
+  };
+  font?: {
+    title?: string;         // Title font family
+    artist?: string;        // Artist font family
+    time?: string;          // Time font family
+  };
+}
+```
 
 Example:
-
-```ts
-async function main() {
-  const res = await dig.Music({
-    image: img,
-    title: "Test",
-    artist: "Test",
-    time: {
-      currentTime: 10,
-      totalTime: 100,
-    },
-    progressBar: {
-      color: "#000000",
-      backgroundColor: "#ffffff"
-    },
-  });
-  fs.writeFileSync("test.png", res);
-  console.log("Done");
-}
+```typescript
+const musicCard = await Music({
+  image: "https://example.com/album-art.jpg",
+  title: "Never Gonna Give You Up",
+  artist: "Rick Astley",
+  time: {
+    currentTime: 42,
+    totalTime: 213
+  },
+  progressBar: {
+    color: "#ff0000",
+    backgroundColor: "#333333",
+    rounded: true
+  },
+  background: {
+    type: "gradient",
+    gradient: ["#1e1e1e", "#2d2d2d"]
+  }
+});
 ```
 
 ### Quote Image Generator
 
-#### `quote(options: QuoteResponse): Promise<Buffer>`
-Creates a stylized quote image with elegant typography and visual effects.
+#### `quote(options: QuoteOptions): Promise<Buffer>`
+Creates beautifully styled quote images with customizable typography, backgrounds, and visual effects.
 
 Options:
-- `quote`: The quote text
-- `author`: The quote author
-- `gradient`: Optional gradient background settings
-  - `type`: "linear" | "radial" 
-  - `colors`: Array of color strings for custom gradient
-- `pattern`: Optional pattern overlay settings
-  - `type`: "dots" | "lines" | "grid" | "waves" | "chevron"
-  - `opacity`: Pattern opacity (0-1)
-  - `scale`: Pattern size scaling factor
+```typescript
+interface QuoteOptions {
+  quote: string;             // The quote text
+  author?: string;           // Quote author (optional)
+  style?: {
+    theme?: "light" | "dark" | "minimal" | "elegant";
+    fontFamily?: string;     // Custom font for quote text
+    fontSize?: number;       // Base font size
+    textAlign?: "left" | "center" | "right";
+    padding?: number;        // Padding around text
+  };
+  background?: {
+    type: "gradient" | "pattern" | "solid" | "image";
+    gradient?: {
+      type: "linear" | "radial";
+      colors: string[];      // Array of color values
+      angle?: number;        // For linear gradients (0-360)
+    };
+    pattern?: {
+      type: "dots" | "lines" | "grid" | "waves" | "chevron";
+      color?: string;
+      opacity?: number;      // Pattern opacity (0-1)
+      scale?: number;        // Pattern size multiplier
+    };
+    image?: string;         // URL for background image
+    color?: string;         // For solid backgrounds
+  };
+  effects?: {
+    shadow?: boolean;       // Text shadow effect
+    glow?: boolean;        // Text glow effect
+    blur?: number;         // Background blur amount
+    vignette?: boolean;    // Vignette effect
+    noise?: number;        // Noise overlay amount (0-1)
+  };
+  dimensions?: {
+    width?: number;        // Output image width
+    height?: number;       // Output image height
+    aspectRatio?: string;  // Or use aspect ratio (e.g., "16:9")
+  };
+}
+```
 
 Example:
-```ts
-async function main() {
-  const res = await dig.quote({
-    quote: "Test",
-    author: "Test",
+```typescript
+const quoteImage = await quote({
+  quote: "Be the change you wish to see in the world.",
+  author: "Mahatma Gandhi",
+  style: {
+    theme: "elegant",
+    fontFamily: "Playfair Display",
+    textAlign: "center"
+  },
+  background: {
+    type: "gradient",
     gradient: {
       type: "linear",
-      colors: ["#000000", "#ffffff"],
-    },
-    pattern: {
-      type: "dots",
-      opacity: 0.5,
-    },
-  });
-  fs.writeFileSync("test.png", res);
-}
+      colors: ["#2193b0", "#6dd5ed"],
+      angle: 45
+    }
+  },
+  effects: {
+    shadow: true,
+    glow: true,
+    vignette: true
+  },
+  dimensions: {
+    aspectRatio: "1:1"
+  }
+});
 ```
 
 ### Custom Options
