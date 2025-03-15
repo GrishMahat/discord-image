@@ -1,7 +1,7 @@
 {
   "name": "discord-image-utils",
-  "version": "0.0.6",
-  "description": "Generate and modify images for use with Discord.js",
+  "version": "0.0.7",
+  "description": "A powerful library for generating and modifying images with Discord.js - includes meme generation, filters, effects and animations",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "publishConfig": {
@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "tsc && mkdir -p dist/assets && cp -r src/assets/* dist/assets/",
-    "dev": "tsc --watch",
+    "dev": "tsc --watch", 
     "clean": "rm -rf dist",
     "lint": "eslint 'src/**/*.{ts,tsx}'",
     "release": "changeset",
@@ -44,7 +44,10 @@
     "effects",
     "manipulation",
     "gif",
-    "animation"
+    "animation",
+    "image-processing",
+    "meme-generator",
+    "social-media"
   ],
   "author": "norysight",
   "license": "MIT",

@@ -1,8 +1,27 @@
 # Changelog
-## [0.0.6] - 2025-03 - New Features
+## [0.0.7] - 2025-03 - New Features
 ### Added
-- Music Player Image Generator: Create dynamic music player visualizations with album art, progress bar, and animated controls
-- Quote Image Generator: Generate stylized quote images with customizable backgrounds, typography and decorative elements
+- Drake Meme Generator: Create Drake approval/disapproval memes with customizable text styling, font size, and colors
+- Wave Distortion Filter: Apply configurable wave effects with amplitude (1-50) and frequency (1-20) controls for creative image manipulation
+- Glitch Art Generator: Create artistic glitch effects with adjustable distortion levels, RGB shift, and scan line parameters
+
+### [0.0.6] - 2025-02 - Image Generation Update
+### Added
+- Interactive Music Player Generator: Create dynamic music visualizations featuring:
+  - Album artwork integration
+  - Customizable progress bars
+  - Animated playback controls
+  - Real-time timestamps
+  - Multiple theme options
+
+- Professional Quote Image Creator: Design polished quote images with:
+  - Rich typography options
+  - Multiple background styles
+  - Custom color schemes
+  - Decorative elements and borders
+  - Social media-optimized formats
+
+
 ## [0.0.5] - 2023-31 - Feature Update
 ### Added
 - Delete Image Effect: New module for creating "Delete this" meme template

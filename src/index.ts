@@ -6,7 +6,8 @@ import { gay } from "./modules/filters/gay";
 import { greyscale } from "./modules/filters/greyscale";
 import { invert } from "./modules/filters/invert";
 import { sepia } from "./modules/filters/sepia";
-
+import { pixelate } from "./modules/filters/pixelate";
+import { wave } from "./modules/filters/wave";
 // gifs
 import { blink } from "./modules/gif/blink";
 import { triggered } from "./modules/gif/triggered";
@@ -20,8 +21,8 @@ import { Batslap } from "./modules/image/Batslap";
 import { ad } from "./modules/image/ad";
 import { beautiful } from "./modules/image/beautiful";
 import { bed } from "./modules/image/bed";
-import { clown } from "./modules/image/clown"
-import { hitler } from "./modules/image/hitler"
+import { clown } from "./modules/image/clown";
+import { hitler } from "./modules/image/hitler";
 import { trash } from "./modules/image/trash";
 import { stonk } from "./modules/image/stonk";
 import { spank } from "./modules/image/spank";
@@ -37,7 +38,7 @@ import { confusedStonk } from "./modules/image/confusedStonk";
 import { deepfry } from "./modules/image/deepfry";
 import { bobross } from "./modules/image/bobross";
 import { Delete } from "./modules/image/delete";
-
+import { drake } from "./modules/fun/drake";
 // fun
 import { Music } from "./modules/fun/music";
 import { Quote } from "./modules/fun/quote";
@@ -48,6 +49,8 @@ export {
   greyscale,
   invert,
   sepia,
+  pixelate,
+  wave,
   blink,
   triggered,
   affect,
@@ -77,6 +80,7 @@ export {
   Delete,
   Music,
   Quote,
+  drake,
 };
 
 // Group everything into an object and export as default
@@ -86,6 +90,8 @@ const dig = {
   greyscale,
   invert,
   sepia,
+  pixelate,
+  wave,
   blink,
   triggered,
   affect,
@@ -115,6 +121,7 @@ const dig = {
   Delete,
   Music,
   Quote,
+  drake,
 };
 
 export default dig;
