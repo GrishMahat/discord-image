@@ -14,6 +14,8 @@ A TypeScript library for generating and modifying images for use with Discord.js
   - Drake Meme Generator (NEW!)
   - Wave Effect Animation (NEW!)
   - Glitch Effect Filter (NEW!)
+  - Sticker Effect Filter (NEW!)
+  - Distracted Boyfriend Meme (NEW!)
   - Affect, Wanted, Kiss, Tatoo
   - Batslap, Ad, Beautiful, Bed
   - Clown, Hitler, Trash, Stonk/NotStonk
@@ -177,30 +179,29 @@ const wavedImage = await wave(imageUrl, {
 
 ### Glitch Effect
 
-#### `glitch(image: ImageInput, options?: GlitchOptions): Promise<Buffer>`
-Creates a glitch art effect with RGB channel shifts and noise.
+#### `glitch(image: ImageInput, intensity?: number): Promise<Buffer>`
+Creates a digital glitch art effect with RGB channel shifts and visual corruption.
 
-Options:
-```typescript
-interface GlitchOptions {
-  intensity?: number;      // Glitch intensity (1-10, default: 5)
-  scanLines?: boolean;     // Add scan lines effect (default: false)
-  colorShift?: boolean;    // Enable RGB channel shifting (default: true)
-  noiseAmount?: number;    // Amount of noise to add (0-1, default: 0.3)
-  seed?: number;          // Random seed for consistent results
-}
-```
+- `image`: URL or file path of the source image
+- `intensity`: Glitch intensity (1-10, default: 5)
 
 Example:
 ```typescript
-const glitchedImage = await glitch(imageUrl, {
-  intensity: 7,
-  scanLines: true,
-  colorShift: true,
-  noiseAmount: 0.5
-});
+const glitchedImage = await glitch(userAvatarUrl, 7);
 ```
 
+### Sticker Effect
+
+#### `sticker(image: ImageInput, borderSize?: number): Promise<Buffer>`
+Applies a sticker effect with white border and drop shadow to an image.
+
+- `image`: URL or file path of the source image
+- `borderSize`: Size of the white border (5-50, default: 15)
+
+Example:
+```typescript
+const stickerImage = await sticker(userAvatarUrl, 20);
+```
 
 ### Music Image Generator
 

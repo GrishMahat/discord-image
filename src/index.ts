@@ -8,6 +8,9 @@ import { invert } from "./modules/filters/invert";
 import { sepia } from "./modules/filters/sepia";
 import { pixelate } from "./modules/filters/pixelate";
 import { wave } from "./modules/filters/wave";
+import { glitch } from "./modules/filters/glitch";
+import { sticker } from "./modules/filters/sticker";
+
 // gifs
 import { blink } from "./modules/gif/blink";
 import { triggered } from "./modules/gif/triggered";
@@ -38,10 +41,12 @@ import { confusedStonk } from "./modules/image/confusedStonk";
 import { deepfry } from "./modules/image/deepfry";
 import { bobross } from "./modules/image/bobross";
 import { Delete } from "./modules/image/delete";
-import { drake } from "./modules/fun/drake";
+
 // fun
 import { Music } from "./modules/fun/music";
 import { Quote } from "./modules/fun/quote";
+import { drake } from "./modules/fun/drake";
+import { distractedBoyfriend } from "./modules/fun/distractedBoyfriend";
 
 export {
   blur,
@@ -51,6 +56,8 @@ export {
   sepia,
   pixelate,
   wave,
+  glitch,
+  sticker,
   blink,
   triggered,
   affect,
@@ -81,6 +88,7 @@ export {
   Music,
   Quote,
   drake,
+  distractedBoyfriend,
 };
 
 // Group everything into an object and export as default
@@ -92,6 +100,8 @@ const dig = {
   sepia,
   pixelate,
   wave,
+  glitch,
+  sticker,
   blink,
   triggered,
   affect,
@@ -122,6 +132,7 @@ const dig = {
   Music,
   Quote,
   drake,
+  distractedBoyfriend,
 };
 
 export default dig;

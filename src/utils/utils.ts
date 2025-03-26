@@ -1,6 +1,6 @@
 /** @format */
 
-import { get } from "https";
+import { get, request } from "https";
 import { ImageInput } from "../types";
 import { CanvasRenderingContext2D as NodeCanvasRenderingContext2D } from "canvas";
 
@@ -15,24 +15,57 @@ export async function validateURL(url: ImageInput): Promise<Buffer | null> {
       console.error("The url must be https");
       return null;
     }
+
     return new Promise<Buffer>((resolve, reject) => {
-      get(url, (response) => {
-        if (response.statusCode !== 200) {
-          console.error(`Invalid status code ${response.statusCode}`);
-          reject(new Error(`Invalid status code ${response.statusCode}`));
+      const fetchWithRedirects = (currentUrl: string, redirectCount = 0) => {
+        // Prevent too many redirects
+        if (redirectCount > 5) {
+          reject(new Error("Too many redirects"));
           return;
         }
-        const type = response.headers["content-type"];
-        if (!type?.startsWith("image/")) {
-          console.error(`Invalid content type ${type}`);
-          reject(new Error(`Invalid content type ${type}`));
-          return;
-        }
-        const chunks: Buffer[] = [];
-        response.on("data", (chunk: Buffer) => chunks.push(chunk));
-        response.on("end", () => resolve(Buffer.concat(chunks)));
-        response.on("error", reject);
-      });
+
+        get(currentUrl, (response) => {
+          const statusCode = response.statusCode || 0;
+
+          // Handle redirects (3xx status codes)
+          if (statusCode >= 300 && statusCode < 400) {
+            const location = response.headers.location;
+            if (!location) {
+              reject(new Error(`Redirect with no location header (status ${statusCode})`));
+              return;
+            }
+
+            // Handle relative URLs in location header
+            const redirectUrl = location.startsWith('http') ? location :
+              new URL(location, currentUrl).toString();
+
+            console.log(`Following redirect (${statusCode}) to: ${redirectUrl}`);
+            fetchWithRedirects(redirectUrl, redirectCount + 1);
+            return;
+          }
+
+          if (statusCode !== 200) {
+            console.error(`Invalid status code ${statusCode}`);
+            reject(new Error(`Invalid status code ${statusCode}`));
+            return;
+          }
+
+          const type = response.headers["content-type"];
+          // Check if content type exists and is an image, handling potential charset information
+          if (!type || !type.split(';')[0].trim().startsWith("image/")) {
+            console.error(`Invalid content type ${type}`);
+            reject(new Error(`Invalid content type ${type}`));
+            return;
+          }
+
+          const chunks: Buffer[] = [];
+          response.on("data", (chunk: Buffer) => chunks.push(chunk));
+          response.on("end", () => resolve(Buffer.concat(chunks)));
+          response.on("error", reject);
+        }).on("error", reject);
+      };
+
+      fetchWithRedirects(url.toString());
     });
   } catch (error) {
     console.error(error);

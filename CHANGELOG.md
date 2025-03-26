@@ -1,4 +1,13 @@
 # Changelog
+
+## [0.0.8] - 2025-03
+### Added 
+ - sticker
+ - glitch
+ - distractedBoyfriend
+### Fixed
+ - URL redirect handling: Added support for HTTP redirects when fetching images 
+
 ## [0.0.7] - 2025-03 - New Features
 ### Added
 - Drake Meme Generator: Create Drake approval/disapproval memes with customizable text styling, font size, and colors
