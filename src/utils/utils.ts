@@ -1,6 +1,6 @@
 /** @format */
 
-import { get, request } from "https";
+import { get } from "https";
 import { ImageInput } from "../types";
 import { CanvasRenderingContext2D as NodeCanvasRenderingContext2D } from "canvas";
 
