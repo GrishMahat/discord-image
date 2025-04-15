@@ -1,4 +1,4 @@
-# Discord Image Generation 
+# Discord Image Generation
 This package is a  reimplementation of [discord-image-generation](https://www.npmjs.com/package/discord-image-generation), enhanced with additional features . While inspired by the original package, it has been completely rewritten to provide better TypeScript support, improved performance, and compatibility .
 
 # Discord Image Generation
@@ -13,9 +13,9 @@ A TypeScript library for generating and modifying images for use with Discord.js
 - Wide variety of meme generators and image manipulations:
   - Drake Meme Generator (NEW!)
   - Wave Effect Animation (NEW!)
-  - Glitch Effect Filter (NEW!)
-  - Sticker Effect Filter (NEW!)
-  - Distracted Boyfriend Meme (NEW!)
+  - Glitch Effect Filter
+  - Sticker Effect Filter
+  - RankCard/Level System with multiple layouts (NEW!)
   - Affect, Wanted, Kiss, Tatoo
   - Batslap, Ad, Beautiful, Bed
   - Clown, Hitler, Trash, Stonk/NotStonk
@@ -119,6 +119,136 @@ Creates a "not stonks" meme with the image.
 #### `lisaPresentation(text: string): Promise<Buffer>`
 Creates a Lisa Simpson presentation meme with custom text.
 
+### Sticker Effect
+
+#### `sticker(image: ImageInput, borderSize?: number): Promise<Buffer>`
+Applies a sticker effect with white border and drop shadow to an image.
+
+- `image`: URL or file path of the source image
+- `borderSize`: Size of the white border (5-50, default: 15)
+
+Example:
+```typescript
+const stickerImage = await sticker(userAvatarUrl, 20);
+```
+
+### RankCard/Level System
+
+#### `RankCard`: Class for Creating Dynamic Level Cards
+
+Creates customizable rank/level cards with various layouts, themes, and visual elements. Perfect for Discord bots with leveling systems.
+
+```typescript
+import { RankCard } from 'discord-image-utils';
+
+// Create a basic rank card
+const card = new RankCard({
+  name: "Username",
+  level: 10,
+  avatar: "https://example.com/avatar.png", // URL or Buffer
+  xp: 750,
+  maxXp: 1000,
+  theme: "neon"
+});
+
+// Customize with chainable methods
+card.setProgressBarGradient([
+  { color: "#ff00ff", position: 0 },
+  { color: "#00ffff", position: 1 }
+])
+.setAvatarGlow("#ff00ff")
+.setLayout("futuristicHUD");
+
+// Render the card
+const buffer = await card.render();
+```
+
+#### Layouts
+
+The RankCard supports multiple layout designs:
+
+- `classic`: Standard card layout with rounded corners
+- `futuristicHUD`: Sci-fi themed layout with hexagonal elements and HUD-style display
+- `split`: Two-column layout (avatar | stats)
+- `ribbon`: Trophy-style card with decorative elements
+- `diagonal`: Angular layout with diagonal division
+- `stacked`: Layered design with overlapping elements
+
+#### Themes
+
+Built-in themes that affect colors and generated backgrounds:
+
+- `default`: Clean, modern design
+- `futuristic`: Tech-inspired with circuit patterns
+- `neon`: Dark theme with glowing elements
+- `minimal`: Simple, light design with subtle patterns
+- `aurora`: Space-inspired with flowing aurora effects
+- `sunset`: Warm tones with ray patterns
+
+#### Customization Options
+
+```typescript
+interface LevelOptions {
+  // Basic info
+  name: string;              // Username
+  level: number;             // Level number
+  avatar: ImageInput;        // Avatar URL/Buffer or Discord user object
+  xp: number;                // Current XP
+  maxXp: number;             // XP required for current level
+  nextLevelXp?: number;      // XP for next level
+  levelUpXp?: number;        // XP needed to level up
+  progress?: number;         // Override progress calculation (0-1)
+
+  // Layout and theme
+  layout?: LayoutType;       // Card layout design
+  theme?: ThemeName;         // Preset color theme
+
+  // Display options
+  showNextLevelXp?: boolean; // Show next level XP info
+  showLevelUpXp?: boolean;   // Show XP needed to level up
+  maxNameWidth?: number;     // Max width for username display
+
+  // Visual customization
+  progressBarColor?: string;
+  progressBarGradient?: GradientStop[];
+  textColor?: string;
+  fontSize?: number;
+  bold?: boolean;
+  fontFamily?: string;
+  textEffect?: TextEffectOptions;
+
+  // Background
+  backgroundBlur?: number;
+  backgroundOverlay?: string;
+  backgroundImage?: ImageInput;
+
+  // Avatar
+  avatarGlow?: string;
+  avatarGlowIntensity?: number;
+  avatarSize?: number;
+  avatarBorder?: string;
+  avatarBorderWidth?: number;
+}
+```
+
+Example with Futuristic HUD layout:
+```typescript
+const rankCard = new RankCard({
+  name: "COMMANDER_01",
+  level: 42,
+  avatar: message.author, // Discord.js user object
+  xp: 8750,
+  maxXp: 10000,
+  theme: "futuristic",
+  layout: "futuristicHUD",
+  avatarGlow: "#00FFFF",
+  avatarGlowIntensity: 25
+});
+
+const attachment = new AttachmentBuilder(await rankCard.render(), { name: 'rank.png' });
+await message.reply({ files: [attachment] });
+```
+
 ## Advanced Usage
 
 
@@ -188,19 +318,6 @@ Creates a digital glitch art effect with RGB channel shifts and visual corruptio
 Example:
 ```typescript
 const glitchedImage = await glitch(userAvatarUrl, 7);
-```
-
-### Sticker Effect
-
-#### `sticker(image: ImageInput, borderSize?: number): Promise<Buffer>`
-Applies a sticker effect with white border and drop shadow to an image.
-
-- `image`: URL or file path of the source image
-- `borderSize`: Size of the white border (5-50, default: 15)
-
-Example:
-```typescript
-const stickerImage = await sticker(userAvatarUrl, 20);
 ```
 
 ### Music Image Generator

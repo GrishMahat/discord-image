@@ -48,6 +48,8 @@ import { Quote } from "./modules/fun/quote";
 import { drake } from "./modules/fun/drake";
 import { distractedBoyfriend } from "./modules/fun/distractedBoyfriend";
 import { level } from "./modules/fun/level";
+
+// Export individual functions
 export {
   blur,
   gay,
@@ -92,6 +94,9 @@ export {
   level,
 };
 
+// Export level as RankCard
+export { level as RankCard };
+
 // Group everything into an object and export as default
 const dig = {
   blur,
@@ -135,6 +140,7 @@ const dig = {
   drake,
   distractedBoyfriend,
   level,
+  RankCard: level,
 };
 
 export default dig;
