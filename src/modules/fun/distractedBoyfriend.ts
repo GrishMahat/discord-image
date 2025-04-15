@@ -76,7 +76,7 @@ export async function distractedBoyfriend(
 
             const lineHeight = settings.fontSize * 1.2;
             const totalHeight = lines.length * lineHeight;
-            let startY = position.y - totalHeight / 2;
+            const startY = position.y - totalHeight / 2;
 
             lines.forEach((line, i) => {
                 const y = startY + i * lineHeight;

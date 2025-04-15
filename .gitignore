@@ -45,3 +45,8 @@ pids
 # npm package files
 .npmrc
 test.png
+test-redesign.png
+redesign-output/
+install.sh
+test.ts
+test-redesign.ts

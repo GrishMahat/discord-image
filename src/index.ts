@@ -47,7 +47,7 @@ import { Music } from "./modules/fun/music";
 import { Quote } from "./modules/fun/quote";
 import { drake } from "./modules/fun/drake";
 import { distractedBoyfriend } from "./modules/fun/distractedBoyfriend";
-
+import { level } from "./modules/fun/level";
 export {
   blur,
   gay,
@@ -89,6 +89,7 @@ export {
   Quote,
   drake,
   distractedBoyfriend,
+  level,
 };
 
 // Group everything into an object and export as default
@@ -133,6 +134,7 @@ const dig = {
   Quote,
   drake,
   distractedBoyfriend,
+  level,
 };
 
 export default dig;

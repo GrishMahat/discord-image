@@ -56,3 +56,9 @@ node_modules/
 .changeset/
 .changeset
 test.png
+
+test-redesign.png
+redesign-output/
+install.sh
+test.ts
+test-redesign.ts
