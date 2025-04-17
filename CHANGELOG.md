@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+### Added
+- welcomeCard
+  - Server welcome message generator with customizable themes
+  - Multiple built-in themes (default, dark, light, colorful, minimal, tech)
+  - Builder API for chainable customization
+  - Support for user avatars with glow effects
+  - Custom background image support
+  - Member count display
+  - Fully customizable colors, fonts, and styling
+
 ## [0.0.9] - 2025-04
 ### Added
   - level/Rankcard

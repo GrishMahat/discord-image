@@ -11,8 +11,8 @@ A TypeScript library for generating and modifying images for use with Discord.js
 - Apply filters (blur, grayscale, sepia, invert, gay)
 - Create animated effects (blink, triggered)
 - Wide variety of meme generators and image manipulations:
-  - Drake Meme Generator (NEW!)
-  - Wave Effect Animation (NEW!)
+  - Drake Meme Generator
+  - Wave Effect Animation
   - Glitch Effect Filter
   - Sticker Effect Filter
   - RankCard/Level System with multiple layouts (NEW!)
@@ -247,6 +247,80 @@ const rankCard = new RankCard({
 
 const attachment = new AttachmentBuilder(await rankCard.render(), { name: 'rank.png' });
 await message.reply({ files: [attachment] });
+```
+
+### Welcome Card Generator
+
+#### `welcomeCard`: Function for Creating Server Welcome Images
+
+Creates customizable welcome images for greeting new members in Discord servers.
+
+```typescript
+import { welcomeCard } from 'discord-image-utils';
+
+// Create a basic welcome card
+const card = await welcomeCard({
+  username: "NewUser",
+  avatar: "https://example.com/avatar.png", // URL or Buffer
+  servername: "My Awesome Server",
+  memberCount: 42,
+  theme: "default"
+});
+
+// Use the card in Discord.js
+const attachment = new AttachmentBuilder(card, { name: 'welcome.png' });
+await channel.send({ files: [attachment] });
+```
+
+#### Using the Builder API
+
+```typescript
+import { WelcomeCardBuilder } from 'discord-image-utils';
+
+// Create a welcome card using the builder pattern
+const card = new WelcomeCardBuilder()
+  .setUsername("NewUser")
+  .setAvatar("https://example.com/avatar.png")
+  .setServerName("My Awesome Server")
+  .setMemberCount(42)
+  .setTheme("tech")
+  .setMessage("Welcome aboard! Enjoy your stay!")
+  .setBackground("https://example.com/background.png")
+  .setTextColor("#FFFFFF");
+
+// Render the card
+const buffer = await card.render();
+```
+
+#### Available Themes
+
+- `default`: Modern dark design with blue accents
+- `dark`: Dark theme with Discord purple accents
+- `light`: Light theme with Discord purple accents
+- `colorful`: Vibrant blue background with orange accents
+- `minimal`: Clean white design with subtle borders
+- `tech`: Futuristic dark theme with cyan text and HUD-like elements
+
+#### Customization Options
+
+```typescript
+interface WelcomeCardOptions {
+  username: string;         // Username to display
+  avatar: ImageInput;       // Avatar URL or Buffer
+  servername?: string;      // Server name to display
+  memberCount?: number;     // Member count to display (#42)
+  background?: ImageInput;  // Custom background image
+  theme?: WelcomeTheme;     // Predefined theme
+  message?: string;         // Custom welcome message
+  customization?: {         // Advanced style options
+    textColor?: string;
+    borderColor?: string;
+    backgroundColor?: string;
+    avatarBorderColor?: string;
+    font?: string;
+    fontSize?: number;
+  }
+}
 ```
 
 ## Advanced Usage

@@ -48,6 +48,7 @@ import { Quote } from "./modules/fun/quote";
 import { drake } from "./modules/fun/drake";
 import { distractedBoyfriend } from "./modules/fun/distractedBoyfriend";
 import { level } from "./modules/fun/level";
+import { welcomeCard, WelcomeCardBuilder, WelcomeCardOptions, WelcomeTheme } from "./modules/fun/welcomeCard";
 
 // Export individual functions
 export {
@@ -92,6 +93,10 @@ export {
   drake,
   distractedBoyfriend,
   level,
+  welcomeCard,
+  WelcomeCardBuilder,
+  WelcomeCardOptions,
+  WelcomeTheme,
 };
 
 // Export level as RankCard
@@ -141,6 +146,8 @@ const dig = {
   distractedBoyfriend,
   level,
   RankCard: level,
+  welcomeCard,
+  WelcomeCardBuilder,
 };
 
 export default dig;
