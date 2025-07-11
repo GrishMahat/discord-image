@@ -41,17 +41,69 @@ yarn add discord-image-utils
 pnpm add discord-image-utils
 ```
 
+## Enhanced Module Structure & TypeScript Support
+
+This library now features a comprehensive module system with excellent TypeScript support and multiple import options:
+
+### Import Options
+
+```typescript
+// 1. Named imports (recommended)
+import { blur, wanted, WelcomeCardBuilder } from 'discord-image-utils';
+
+// 2. Category-specific imports (best for bundle size)
+import { blur, greyscale, pixelate } from 'discord-image-utils/filters';
+import { triggered, blink } from 'discord-image-utils/gif';
+import { wanted, affect } from 'discord-image-utils/image';
+import { welcomeCard, level } from 'discord-image-utils/fun';
+
+// 3. Type-only imports
+import type { 
+  WelcomeCardOptions, 
+  FilterLevel, 
+  ValidationError 
+} from 'discord-image-utils/types';
+
+// 4. Error handling classes
+import { 
+  ValidationError, 
+  NetworkError, 
+  ImageProcessingError 
+} from 'discord-image-utils/errors';
+
+// 5. Traditional default import (still supported)
+import dig from 'discord-image-utils';
+```
+
+### Enhanced Error Handling
+
+```typescript
+import { blur, ValidationError, ImageProcessingError } from 'discord-image-utils';
+
+try {
+  const result = await blur(image, 5);
+} catch (error) {
+  if (error instanceof ValidationError) {
+    console.log(`Validation error: ${error.message}`);
+    console.log(`Field: ${error.details?.field}`);
+  } else if (error instanceof ImageProcessingError) {
+    console.log(`Processing error: ${error.message}`);
+    console.log(`Operation: ${error.details?.operation}`);
+  }
+}
+```
+
 ## Quick Start
 
 ```typescript
 import { AttachmentBuilder } from 'discord.js';
-import { blur, gay, triggered, wanted } from 'discord-image-utils';
+import { blur, triggered, wanted } from 'discord-image-utils';
 
 // Example: Using in a Discord.js command
 async function imageCommand(message, imageUrl) {
   try {
-    // Apply a filter
-    const blurredImage = await blur(5, imageUrl);
+    // Apply a filter with enhanced error handling
+    const blurredImage = await blur(imageUrl, 5);
     const attachment = new AttachmentBuilder(blurredImage, { name: 'blurred.png' });
     await message.reply({ files: [attachment] });
 
@@ -61,6 +113,7 @@ async function imageCommand(message, imageUrl) {
     await message.reply({ files: [gifAttachment] });
   } catch (error) {
     console.error('Error processing image:', error);
+    // Error handling is now much more detailed and helpful
   }
 }
 ```

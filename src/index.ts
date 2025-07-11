@@ -63,6 +63,9 @@ import {
   RetryHandler 
 } from "./utils/errors";
 
+// types
+export * from "./types";
+
 // Export individual functions
 export {
   blur,
