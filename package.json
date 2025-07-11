@@ -1,6 +1,6 @@
 {
   "name": "discord-image-utils",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A powerful library for generating and modifying images with Discord.js - includes meme generation, filters, effects and animations",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -64,14 +64,30 @@
   },
   "typesVersions": {
     "*": {
-      "types": ["./dist/types/index.d.ts"],
-      "errors": ["./dist/utils/errors.d.ts"],
-      "utils": ["./dist/utils/utils.d.ts"],
-      "modules": ["./dist/modules/index.d.ts"],
-      "filters": ["./dist/modules/filters/index.d.ts"],
-      "gif": ["./dist/modules/gif/index.d.ts"],
-      "image": ["./dist/modules/image/index.d.ts"],
-      "fun": ["./dist/modules/fun/index.d.ts"]
+      "types": [
+        "./dist/types/index.d.ts"
+      ],
+      "errors": [
+        "./dist/utils/errors.d.ts"
+      ],
+      "utils": [
+        "./dist/utils/utils.d.ts"
+      ],
+      "modules": [
+        "./dist/modules/index.d.ts"
+      ],
+      "filters": [
+        "./dist/modules/filters/index.d.ts"
+      ],
+      "gif": [
+        "./dist/modules/gif/index.d.ts"
+      ],
+      "image": [
+        "./dist/modules/image/index.d.ts"
+      ],
+      "fun": [
+        "./dist/modules/fun/index.d.ts"
+      ]
     }
   },
   "files": [
@@ -95,6 +111,7 @@
     "@eslint/js": "9.22.0",
     "@types/gifencoder": "2.0.3",
     "@types/node": "^20.0.0",
+    "canvas": "^3.1.2",
     "eslint": "9.22.0",
     "globals": "16.0.0",
     "typescript": "5.8.2",
@@ -105,7 +122,6 @@
     "gifencoder": "2.0.1",
     "jimp": "1.6.0"
   },
-
   "engines": {
     "node": ">=16.0.0"
   },
@@ -149,5 +165,5 @@
   "bugs": {
     "url": "https://github.com/GrishMahat/discord-image/issues"
   },
-    "homepage": "https://github.com/GrishMahat/discord-image#readme"
+  "homepage": "https://github.com/GrishMahat/discord-image#readme"
 }
