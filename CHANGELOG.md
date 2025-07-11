@@ -2,14 +2,29 @@
 
 ## [Unreleased]
 ### Added
-- welcomeCard
-  - Server welcome message generator with customizable themes
-  - Multiple built-in themes (default, dark, light, colorful, minimal, tech)
-  - Builder API for chainable customization
-  - Support for user avatars with glow effects
-  - Custom background image support
-  - Member count display
-  - Fully customizable colors, fonts, and styling
+  - WelcomeCard System
+  - Dynamic welcome message generator with extensive customization options
+  
+  - Rich theme selection including:
+    - Default, Dark, Light, Colorful, Minimal, Tech themes
+    - Each with unique styling and layout
+  - Powerful Builder API for fluent customization
+  - Advanced avatar features:
+    - Customizable glow effects and borders
+    - Automatic avatar fetching and caching
+  - Background customization:
+    - Custom image support with auto-optimization
+    - Built-in pattern and gradient presets
+  - Member statistics display with formatting options
+  - Complete style control:
+    - Font family, size, weight and colors
+    - Border styles and shadow effects
+    - Layout spacing and alignment
+  - Production-ready features:
+    - 100% TypeScript coverage with full type safety
+    - Comprehensive error handling with detailed messages
+    - Memory-efficient image processing
+    - Extensive input validation
 
 ## [0.0.9] - 2025-04
 ### Added
