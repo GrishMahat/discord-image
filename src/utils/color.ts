@@ -1,6 +1,6 @@
 /** @format */
 
-import { createCanvas } from "canvas";
+import { createCanvas } from "./canvas-compat";
 
 /**
  * Class for generating a solid color image.

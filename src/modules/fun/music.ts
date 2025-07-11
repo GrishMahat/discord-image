@@ -3,8 +3,8 @@
 import {
   loadImage,
   createCanvas,
-  CanvasRenderingContext2D as NodeCanvasRenderingContext2D,
-} from "canvas";
+} from "../../utils/canvas-compat";
+import type { NodeCanvasRenderingContext2D } from "../../utils/canvas-compat";
 import { MusicImageOptions } from "../../types/index";
 
 /**

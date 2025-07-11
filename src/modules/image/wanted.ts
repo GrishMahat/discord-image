@@ -1,6 +1,6 @@
 /** @format */
 
-import { createCanvas, loadImage } from "canvas";
+import { createCanvas, loadImage } from "../../utils/canvas-compat";
 import { ImageInput } from "../../types";
 import { validateURL, applyText } from "../../utils/utils";
 import { ValidationError, ImageProcessingError, FileSystemError, ErrorHandler } from "../../utils/errors";

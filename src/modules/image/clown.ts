@@ -1,4 +1,5 @@
-import { createCanvas, loadImage, Image, CanvasRenderingContext2D as NodeCanvasRenderingContext2D } from "canvas";
+import { createCanvas, loadImage, Image } from "../../utils/canvas-compat";
+import type { NodeCanvasRenderingContext2D, ImageType } from "../../utils/canvas-compat";
 import { validateURL } from "../../utils/utils";
 import { ImageInput } from "../../types";
 
@@ -21,7 +22,7 @@ export const clown = async (image: ImageInput): Promise<Buffer> => {
     // Helper function to draw rotated images
     function drawImage(
       ctx: NodeCanvasRenderingContext2D,
-      image: Image,
+      image: ImageType,
       x: number,
       y: number,
       w: number,

@@ -1,6 +1,7 @@
 /** @format */
 
-import { createCanvas, loadImage, CanvasRenderingContext2D as NodeCanvasRenderingContext2D, Image } from "canvas";
+import { createCanvas, loadImage, Image } from "../../utils/canvas-compat";
+import type { NodeCanvasRenderingContext2D, ImageType } from "../../utils/canvas-compat";
 import { ImageInput } from "../../types";
 import { validateURL } from "../../utils/utils";
 
@@ -49,7 +50,7 @@ export const snyder = async (image: ImageInput): Promise<Buffer> => {
 
 function drawImage(
   ctx: NodeCanvasRenderingContext2D,
-  image: Image,
+  image: ImageType,
   x: number,
   y: number,
   w: number,

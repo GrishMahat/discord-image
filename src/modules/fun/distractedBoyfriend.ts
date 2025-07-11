@@ -1,5 +1,5 @@
 /** @format */
-import { createCanvas, loadImage, registerFont } from "canvas";
+import { createCanvas, loadImage, registerFont } from "../../utils/canvas-compat";
 import { join } from "path";
 import { wrapText } from "../../utils/utils";
 

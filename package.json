@@ -79,7 +79,9 @@
     "README.md",
     "LICENSE",
     "CHANGELOG.md",
-    "ERROR_HANDLING.md"
+    "INSTALLATION.md",
+    "ERROR_HANDLING.md",
+    "TYPES_AND_MODULES.md"
   ],
   "publishConfig": {
     "access": "public"
@@ -104,10 +106,11 @@
     "typescript-eslint": "8.26.1"
   },
   "dependencies": {
-    "canvas": "3.1.0",
+    "@napi-rs/canvas": "^0.1.56",
     "gifencoder": "2.0.1",
     "jimp": "1.6.0"
   },
+
   "engines": {
     "node": ">=16.0.0"
   },
@@ -151,10 +154,5 @@
   "bugs": {
     "url": "https://github.com/GrishMahat/discord-image/issues"
   },
-  "homepage": "https://github.com/GrishMahat/discord-image#readme",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "canvas"
-    ]
-  }
+    "homepage": "https://github.com/GrishMahat/discord-image#readme"
 }

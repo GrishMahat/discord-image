@@ -1,6 +1,6 @@
 /** @format */
 
-import { createCanvas, loadImage } from "canvas";
+import { createCanvas, loadImage } from "../../utils/canvas-compat";
 import { join } from "path";
 import { validateURL } from "../../utils/utils";
 import { ImageInput } from "../../types";

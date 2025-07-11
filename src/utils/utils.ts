@@ -2,7 +2,7 @@
 
 import { get } from "https";
 import { ImageInput } from "../types";
-import { CanvasRenderingContext2D as NodeCanvasRenderingContext2D } from "canvas";
+import { NodeCanvasRenderingContext2D } from "./canvas-compat";
 import { 
   ValidationError, 
   NetworkError, 

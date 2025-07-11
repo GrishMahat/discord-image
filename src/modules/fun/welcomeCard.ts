@@ -1,4 +1,4 @@
-import { createCanvas, loadImage, registerFont } from "canvas";
+import { createCanvas, loadImage, registerFont } from "../../utils/canvas-compat";
 import { validateURL } from "../../utils/utils";
 import { ImageInput } from "../../types";
 

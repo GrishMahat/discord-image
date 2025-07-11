@@ -1,4 +1,4 @@
-import type { CanvasRenderingContext2D as NodeCanvasRenderingContext2D } from 'canvas';
+import type { NodeCanvasRenderingContext2D } from '../../utils/canvas-compat';
 import { QuoteResponse } from '../../types/index';
 
 export function validateInput(data: QuoteResponse): void {
@@ -438,7 +438,7 @@ function calculateCanvasDimensions(quote: string): {
 export async function Quote(data: QuoteResponse): Promise<Buffer> {
 	validateInput(data);
 
-	const { createCanvas } = await import('canvas');
+	const { createCanvas } = await import('../../utils/canvas-compat');
 
 	const { width, height } = calculateCanvasDimensions(data.quote);
 	const canvas = createCanvas(width, height);

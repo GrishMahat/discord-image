@@ -1,4 +1,5 @@
-import { createCanvas, loadImage, registerFont, CanvasRenderingContext2D as NodeCanvasRenderingContext2D } from "canvas";
+import { createCanvas, loadImage, registerFont } from "../../utils/canvas-compat";
+import type { NodeCanvasRenderingContext2D } from "../../utils/canvas-compat";
 import path from "path";
 import { wrapText } from "../../utils/utils";
 
