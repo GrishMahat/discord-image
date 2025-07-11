@@ -4,6 +4,7 @@ import { createCanvas, loadImage } from "canvas";
 import { ImageInput } from "../../types";
 import { validateURL } from "../../utils/utils";
 import GIFEncoder from "gifencoder";
+import { ValidationError, ImageProcessingError, FileSystemError, ErrorHandler } from "../../utils/errors";
 
 /**
  * Creates a "triggered" GIF effect on an image
@@ -12,68 +13,125 @@ import GIFEncoder from "gifencoder";
  * @returns Buffer containing the generated GIF
  */
 export const triggered = async (image: ImageInput, timeout: number = 15): Promise<Buffer> => {
-  // Validate inputs
-  if (!image) {
-    throw new Error("Image is required");
-  }
+  return ErrorHandler.withErrorHandling(async () => {
+    // Validate inputs
+    ErrorHandler.validateRequired(image, "image");
+    ErrorHandler.validateRange(timeout, 1, 1000, "frame timeout");
 
-  const isValid = await validateURL(image);
-  if (!isValid) {
-    throw new Error("Invalid image");
-  }
-  if (isNaN(timeout)) {
-    throw new Error("Timeout must be a number");
-  }
+    // Validate and fetch image
+    const imageBuffer = await validateURL(image);
+    if (!imageBuffer) {
+      throw new ValidationError("Failed to load image", "image", image);
+    }
 
-  // Load images
-  const base = await loadImage(`${__dirname}/../../assets/triggered.png`);
-  const img = await loadImage(image);
+    try {
+      // Load template path
+      const templatePath = "../../assets/triggered.png";
 
-  // Initialize GIF encoder
-  const GIF = new GIFEncoder(256, 310);
-  GIF.start();
-  GIF.setRepeat(0); // Loop forever
-  GIF.setDelay(timeout);
+      // Load images with error handling
+      const [base, img] = await Promise.all([
+        loadImage(templatePath).catch((error: any) => {
+          throw new FileSystemError(
+            `Failed to load triggered template: ${error.message}`,
+            templatePath,
+            "loadTemplate"
+          );
+        }),
+        loadImage(imageBuffer).catch((error: any) => {
+          throw new ImageProcessingError(
+            `Failed to load source image: ${error.message}`,
+            "loadSourceImage",
+            { imageSize: imageBuffer.length }
+          );
+        })
+      ]);
 
-  // Create canvas
-  const canvas = createCanvas(256, 310);
-  const ctx = canvas.getContext("2d");
+      // Initialize GIF encoder
+      const GIF = new GIFEncoder(256, 310);
+      GIF.start();
+      GIF.setRepeat(0); // Loop forever
+      GIF.setDelay(timeout);
 
-  // Constants for random offsets
-  const BACKGROUND_RANGE = 20; // Range for background image shake
-  const LABEL_RANGE = 10; // Range for "triggered" label shake
+      // Create canvas
+      const canvas = createCanvas(256, 310);
+      const ctx = canvas.getContext("2d");
 
-  // Generate frames
-  for (let i = 0; i < 9; i++) {
-    // Clear previous frame
-    ctx.clearRect(0, 0, 256, 310);
+      // Constants for random offsets
+      const BACKGROUND_RANGE = 20; // Range for background image shake
+      const LABEL_RANGE = 10; // Range for "triggered" label shake
 
-    // Draw shaking background image
-    ctx.drawImage(
-      img,
-      Math.floor(Math.random() * BACKGROUND_RANGE) - BACKGROUND_RANGE,
-      Math.floor(Math.random() * BACKGROUND_RANGE) - BACKGROUND_RANGE,
-      256 + BACKGROUND_RANGE,
-      310 - 54 + BACKGROUND_RANGE
-    );
+      // Generate frames
+      for (let i = 0; i < 9; i++) {
+        try {
+          // Clear previous frame
+          ctx.clearRect(0, 0, 256, 310);
 
-    // Add red overlay
-    ctx.fillStyle = "#FF000033";
-    ctx.fillRect(0, 0, 256, 310);
+          // Draw shaking background image
+          ctx.drawImage(
+            img,
+            Math.floor(Math.random() * BACKGROUND_RANGE) - BACKGROUND_RANGE,
+            Math.floor(Math.random() * BACKGROUND_RANGE) - BACKGROUND_RANGE,
+            256 + BACKGROUND_RANGE,
+            310 - 54 + BACKGROUND_RANGE
+          );
 
-    // Draw shaking "triggered" label
-    ctx.drawImage(
-      base,
-      Math.floor(Math.random() * LABEL_RANGE) - LABEL_RANGE,
-      310 - 54 + Math.floor(Math.random() * LABEL_RANGE) - LABEL_RANGE,
-      256 + LABEL_RANGE,
-      54 + LABEL_RANGE
-    );
+          // Add red overlay
+          ctx.fillStyle = "#FF000033";
+          ctx.fillRect(0, 0, 256, 310);
 
-    GIF.addFrame(ctx as unknown as CanvasRenderingContext2D);
-  }
+          // Draw shaking "triggered" label
+          ctx.drawImage(
+            base,
+            Math.floor(Math.random() * LABEL_RANGE) - LABEL_RANGE,
+            310 - 54 + Math.floor(Math.random() * LABEL_RANGE) - LABEL_RANGE,
+            256 + LABEL_RANGE,
+            54 + LABEL_RANGE
+          );
 
-  // Finalize and return GIF
-  GIF.finish();
-  return GIF.out.getData();
+          GIF.addFrame(ctx as unknown as CanvasRenderingContext2D);
+        } catch (error) {
+          throw new ImageProcessingError(
+            `Failed to generate frame ${i + 1}`,
+            "frameGeneration",
+            { frameIndex: i, totalFrames: 9 }
+          );
+        }
+      }
+
+      // Finalize GIF
+      try {
+        GIF.finish();
+        const buffer = GIF.out.getData();
+        
+        if (!buffer || buffer.length === 0) {
+          throw new ImageProcessingError("Generated GIF buffer is empty", "gifExport");
+        }
+
+        return buffer;
+      } catch (error) {
+        throw new ImageProcessingError(
+          "Failed to finalize GIF",
+          "gifFinalization",
+          { frameCount: 9, timeout }
+        );
+      }
+
+    } catch (error) {
+      if (error instanceof ValidationError || 
+          error instanceof ImageProcessingError || 
+          error instanceof FileSystemError) {
+        throw error;
+      }
+
+      if (error instanceof Error) {
+        throw new ImageProcessingError(
+          `Failed to create triggered GIF: ${error.message}`,
+          "triggered",
+          { timeout, imageSize: imageBuffer.length }
+        );
+      }
+
+      throw error;
+    }
+  }, "triggered GIF generator");
 };

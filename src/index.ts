@@ -50,6 +50,19 @@ import { distractedBoyfriend } from "./modules/fun/distractedBoyfriend";
 import { level } from "./modules/fun/level";
 import { welcomeCard, WelcomeCardBuilder, WelcomeCardOptions, WelcomeTheme } from "./modules/fun/welcomeCard";
 
+// error handling
+import { 
+  DiscordImageError, 
+  ValidationError, 
+  NetworkError, 
+  ImageProcessingError, 
+  FileSystemError, 
+  ConfigurationError, 
+  TimeoutError, 
+  ErrorHandler, 
+  RetryHandler 
+} from "./utils/errors";
+
 // Export individual functions
 export {
   blur,
@@ -97,6 +110,15 @@ export {
   WelcomeCardBuilder,
   WelcomeCardOptions,
   WelcomeTheme,
+  DiscordImageError,
+  ValidationError,
+  NetworkError,
+  ImageProcessingError,
+  FileSystemError,
+  ConfigurationError,
+  TimeoutError,
+  ErrorHandler,
+  RetryHandler,
 };
 
 // Export level as RankCard
@@ -148,6 +170,15 @@ const dig = {
   RankCard: level,
   welcomeCard,
   WelcomeCardBuilder,
+  DiscordImageError,
+  ValidationError,
+  NetworkError,
+  ImageProcessingError,
+  FileSystemError,
+  ConfigurationError,
+  TimeoutError,
+  ErrorHandler,
+  RetryHandler,
 };
 
 export default dig;

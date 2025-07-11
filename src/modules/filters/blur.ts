@@ -3,6 +3,7 @@
 import { Jimp } from "jimp";
 import { validateURL } from "../../utils/utils";
 import { ImageInput } from "../../types";
+import { ValidationError, ImageProcessingError, ErrorHandler } from "../../utils/errors";
 
 /**
  * Applies a blur effect to an image
@@ -14,26 +15,41 @@ export const blur = async (
   image: ImageInput,
   level: number = 10
 ): Promise<Buffer> => {
-  if (!image) {
-    throw new Error("You must provide an image as the first argument.");
-  }
+  return ErrorHandler.withErrorHandling(async () => {
+    // Validate inputs
+    ErrorHandler.validateRequired(image, "image");
+    ErrorHandler.validateRange(level, 1, 10, "blur level");
 
-  const isValid = await validateURL(image);
-  if (!isValid) {
-    throw new Error("You must provide a valid image URL or buffer.");
-  }
+    // Validate and fetch image
+    const imageBuffer = await validateURL(image);
+    if (!imageBuffer) {
+      throw new ValidationError("Failed to load image", "image", image);
+    }
 
-  if (level < 1 || level > 10) {
-    throw new Error("Level must be between 1 and 10.");
-  }
+    try {
+      // Process image with Jimp
+      const jimpImage = await Jimp.read(imageBuffer);
+      
+      // Apply blur effect
+      jimpImage.blur(level);
 
-  try {
-    const jimpImage = await Jimp.read(image);
-    jimpImage.blur(level);
+      // Export as PNG
+      const buffer = await jimpImage.getBuffer("image/png");
+      
+      if (!buffer || buffer.length === 0) {
+        throw new ImageProcessingError("Generated image buffer is empty", "blur export");
+      }
 
-    const buffer = await jimpImage.getBuffer("image/png");
-    return buffer;
-  } catch (error) {
-    throw new Error(`Failed to process image: ${error}`);
-  }
+      return buffer;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new ImageProcessingError(
+          `Failed to apply blur effect: ${error.message}`,
+          "blur",
+          { level, imageSize: imageBuffer.length }
+        );
+      }
+      throw error;
+    }
+  }, "blur filter");
 };
