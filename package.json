@@ -76,12 +76,7 @@
   },
   "files": [
     "dist",
-    "README.md",
-    "LICENSE",
-    "CHANGELOG.md",
-    "INSTALLATION.md",
-    "ERROR_HANDLING.md",
-    "TYPES_AND_MODULES.md"
+    "README.md"
   ],
   "publishConfig": {
     "access": "public"

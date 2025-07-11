@@ -1,6 +1,6 @@
 /** @format */
 
-// Re-export modules organized by category for better tree-shaking
+// Re-export modules organized by category for better tree-shaking 
 
 // Filters
 export { blur } from "./filters/blur";
