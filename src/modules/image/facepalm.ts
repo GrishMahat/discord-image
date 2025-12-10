@@ -1,5 +1,5 @@
 import { Jimp } from "jimp";
-import { ImageInput } from "../../types";
+import type { ImageInput } from "../../types";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -8,38 +8,37 @@ import { validateURL } from "../../utils/utils";
  * @returns Buffer containing the processed image
  */
 export const facepalm = async (image: ImageInput): Promise<Buffer> => {
-  try {
-    if (!image) {
-      throw new Error("Image is required");
-    }
+	try {
+		if (!image) {
+			throw new Error("Image is required");
+		}
 
-    const isValid = await validateURL(image);
-    if (!isValid) {
-      throw new Error("Invalid URL provided");
-    }
+		const isValid = await validateURL(image);
+		if (!isValid) {
+			throw new Error("Invalid URL provided");
+		}
 
-    // Load the background facepalm image
-    const bg = await Jimp.read(`${__dirname}/../../assets/facepalm.png`);
-    
-    // Load and resize the user's avatar
-    const avatar = await Jimp.read(image);
-    const compositeImage = new Jimp({
-      width: bg.bitmap.width,
-      height: bg.bitmap.height,
-      color: 0xffffffff,
-    });
+		// Load the background facepalm image
+		const bg = await Jimp.read(`${__dirname}/../../assets/facepalm.png`);
 
-    // Resize avatar to match background dimensions
-    avatar.resize({w: bg.bitmap.width, h: bg.bitmap.height});
+		// Load and resize the user's avatar
+		const avatar = await Jimp.read(image);
+		const compositeImage = new Jimp({
+			width: bg.bitmap.width,
+			height: bg.bitmap.height,
+			color: 0xffffffff,
+		});
 
-    // Composite the images together
-    compositeImage.composite(avatar, 199, 112);
-    compositeImage.composite(bg, 0, 0);
+		// Resize avatar to match background dimensions
+		avatar.resize({ w: bg.bitmap.width, h: bg.bitmap.height });
 
-    return await compositeImage.getBuffer("image/png");
+		// Composite the images together
+		compositeImage.composite(avatar, 199, 112);
+		compositeImage.composite(bg, 0, 0);
 
-  } catch (error) {
-    console.error("Error creating facepalm effect:", error);
-    throw new Error(`Failed to create facepalm effect: ${error}`);
-  }
+		return await compositeImage.getBuffer("image/png");
+	} catch (error) {
+		console.error("Error creating facepalm effect:", error);
+		throw new Error(`Failed to create facepalm effect: ${error}`);
+	}
 };

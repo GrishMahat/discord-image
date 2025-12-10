@@ -1,8 +1,11 @@
 /** @format */
 
-import { createCanvas, loadImage, Image } from "../../utils/canvas-compat";
-import type { NodeCanvasRenderingContext2D, ImageType } from "../../utils/canvas-compat";
-import { ImageInput } from "../../types";
+import type { ImageInput } from "../../types";
+import type {
+	ImageType,
+	NodeCanvasRenderingContext2D,
+} from "../../utils/canvas-compat";
+import { createCanvas, loadImage } from "../../utils/canvas-compat";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -11,56 +14,55 @@ import { validateURL } from "../../utils/utils";
  * @returns Buffer containing the processed image
  */
 export const snyder = async (image: ImageInput): Promise<Buffer> => {
-  try {
-    if (!image) {
-      throw new Error("Image is required");
-    }
+	try {
+		if (!image) {
+			throw new Error("Image is required");
+		}
 
-    const isValid = await validateURL(image);
-    if (!isValid) {
-      throw new Error("Invalid URL provided");
-    }
+		const isValid = await validateURL(image);
+		if (!isValid) {
+			throw new Error("Invalid URL provided");
+		}
 
-    const canvas = createCanvas(610, 343);
-    const ctx = canvas.getContext("2d");
+		const canvas = createCanvas(610, 343);
+		const ctx = canvas.getContext("2d");
 
-    // Load images
-    const [userImage, background] = await Promise.all([
-      loadImage(image),
-      loadImage(`${__dirname}/../../assets/snyder.png`)
-    ]);
+		// Load images
+		const [userImage, background] = await Promise.all([
+			loadImage(image),
+			loadImage(`${__dirname}/../../assets/snyder.png`),
+		]);
 
-    // Draw black background
-    ctx.fillStyle = "#000000";
-    ctx.fillRect(0, 0, 610, 343);
+		// Draw black background
+		ctx.fillStyle = "#000000";
+		ctx.fillRect(0, 0, 610, 343);
 
-    // Draw rotated user image
-    drawImage(ctx, userImage, 62, 70, 300, 300, -6);
+		// Draw rotated user image
+		drawImage(ctx, userImage, 62, 70, 300, 300, -6);
 
-    // Draw snyder overlay
-    ctx.drawImage(background, 0, 0, 610, 343);
+		// Draw snyder overlay
+		ctx.drawImage(background, 0, 0, 610, 343);
 
-    return canvas.toBuffer();
-
-  } catch (error) {
-    console.error("Error creating snyder meme:", error);
-    throw new Error(`Failed to create snyder meme: ${error}`);
-  }
+		return canvas.toBuffer();
+	} catch (error) {
+		console.error("Error creating snyder meme:", error);
+		throw new Error(`Failed to create snyder meme: ${error}`);
+	}
 };
 
 function drawImage(
-  ctx: NodeCanvasRenderingContext2D,
-  image: ImageType,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  degrees: number
+	ctx: NodeCanvasRenderingContext2D,
+	image: ImageType,
+	x: number,
+	y: number,
+	w: number,
+	h: number,
+	degrees: number,
 ): void {
-  ctx.save();
-  ctx.translate(x + w / 2, y + h / 2);
-  ctx.rotate((degrees * Math.PI) / 180.0);
-  ctx.translate(-x - w / 2, -y - h / 2);
-  ctx.drawImage(image, x, y, w, h);
-  ctx.restore();
+	ctx.save();
+	ctx.translate(x + w / 2, y + h / 2);
+	ctx.rotate((degrees * Math.PI) / 180.0);
+	ctx.translate(-x - w / 2, -y - h / 2);
+	ctx.drawImage(image, x, y, w, h);
+	ctx.restore();
 }

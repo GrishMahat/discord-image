@@ -1,6 +1,6 @@
+import { join } from "node:path";
+import type { ImageInput } from "../../types";
 import { createCanvas, loadImage } from "../../utils/canvas-compat";
-import { join } from "path";
-import { ImageInput } from "../../types";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -9,35 +9,34 @@ import { validateURL } from "../../utils/utils";
  * @returns Promise<Buffer> - The generated tattoo image
  */
 export const tatoo = async (image: ImageInput): Promise<Buffer> => {
-  if (!image) {
-    throw new Error("Image is required");
-  }
+	if (!image) {
+		throw new Error("Image is required");
+	}
 
-  const isValid = await validateURL(image);
-  if (!isValid) {
-    throw new Error("Invalid image URL or buffer provided");
-  }
+	const isValid = await validateURL(image);
+	if (!isValid) {
+		throw new Error("Invalid image URL or buffer provided");
+	}
 
-  try {
-    // Set up canvas with correct dimensions for tattoo template
-    const canvas = createCanvas(750, 1089);
-    const ctx = canvas.getContext("2d");
+	try {
+		// Set up canvas with correct dimensions for tattoo template
+		const canvas = createCanvas(750, 1089);
+		const ctx = canvas.getContext("2d");
 
-    // Load images
-    const [avatar, tatooTemplate] = await Promise.all([
-      loadImage(image),
-      loadImage(join(__dirname, "../../assets/tatoo.png")),
-    ]);
+		// Load images
+		const [avatar, tatooTemplate] = await Promise.all([
+			loadImage(image),
+			loadImage(join(__dirname, "../../assets/tatoo.png")),
+		]);
 
-    // Draw the user's image first
-    ctx.drawImage(avatar, 145, 575, 400, 400);
+		// Draw the user's image first
+		ctx.drawImage(avatar, 145, 575, 400, 400);
 
-    // Overlay the tattoo template
-    ctx.drawImage(tatooTemplate, 0, 0, 750, 1089);
+		// Overlay the tattoo template
+		ctx.drawImage(tatooTemplate, 0, 0, 750, 1089);
 
-    return canvas.toBuffer();
-
-  } catch (error) {
-    throw new Error(`Failed to generate tattoo image: ${error}`);
-  }
+		return canvas.toBuffer();
+	} catch (error) {
+		throw new Error(`Failed to generate tattoo image: ${error}`);
+	}
 };

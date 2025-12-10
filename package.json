@@ -101,21 +101,19 @@
     "build": "tsc && mkdir -p dist/assets && cp -r src/assets/* dist/assets/",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "lint": "eslint 'src/**/*.{ts,tsx}'",
+    "lint": "biome check src",
+    "format": "biome format --write src",
     "release": "changeset",
     "version": "changeset version",
     "publish": "pnpm run build && changeset publish"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.3.8",
     "@changesets/cli": "2.28.1",
-    "@eslint/js": "9.22.0",
     "@types/gifencoder": "2.0.3",
     "@types/node": "^20.0.0",
     "canvas": "^3.1.2",
-    "eslint": "9.22.0",
-    "globals": "16.0.0",
-    "typescript": "5.8.2",
-    "typescript-eslint": "8.26.1"
+    "typescript": "5.8.2"
   },
   "dependencies": {
     "@napi-rs/canvas": "^0.1.56",

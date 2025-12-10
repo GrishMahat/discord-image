@@ -1,7 +1,7 @@
 /** @format */
 
 import { Jimp } from "jimp";
-import { ImageInput } from "../../types";
+import type { ImageInput } from "../../types";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -10,31 +10,31 @@ import { validateURL } from "../../utils/utils";
  * @returns Promise<Buffer> - The generated meme image
  */
 export const notStonk = async (image: ImageInput): Promise<Buffer> => {
-  if (!image) {
-    throw new Error("You must provide an image as the first argument.");
-  }
+	if (!image) {
+		throw new Error("You must provide an image as the first argument.");
+	}
 
-  const isValid = await validateURL(image);
-  if (!isValid) {
-    throw new Error("You must provide a valid image URL or buffer.");
-  }
+	const isValid = await validateURL(image);
+	if (!isValid) {
+		throw new Error("You must provide a valid image URL or buffer.");
+	}
 
-  try {
-    const canvas = new Jimp({ width: 960, height: 576 });
-    const userImage = await Jimp.read(image);
-    const background = await Jimp.read(
-      `${__dirname}/../../assets/notStonk.png`
-    );
+	try {
+		const canvas = new Jimp({ width: 960, height: 576 });
+		const userImage = await Jimp.read(image);
+		const background = await Jimp.read(
+			`${__dirname}/../../assets/notStonk.png`,
+		);
 
-    userImage.resize({ w: 190, h: 190 });
-    background.resize({ w: 960, h: 576 });
+		userImage.resize({ w: 190, h: 190 });
+		background.resize({ w: 960, h: 576 });
 
-    canvas.composite(userImage, 140, 5);
-    canvas.composite(background, 0, 0);
+		canvas.composite(userImage, 140, 5);
+		canvas.composite(background, 0, 0);
 
-    return await canvas.getBuffer("image/png");
-  } catch (error) {
-    console.error("Error creating notStonk meme:", error);
-    throw new Error(`Failed to create notStonk meme: ${error}`);
-  }
+		return await canvas.getBuffer("image/png");
+	} catch (error) {
+		console.error("Error creating notStonk meme:", error);
+		throw new Error(`Failed to create notStonk meme: ${error}`);
+	}
 };

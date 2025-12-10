@@ -1,19 +1,19 @@
-import type { NodeCanvasRenderingContext2D } from '../../utils/canvas-compat';
-import { QuoteResponse } from '../../types/index';
+import type { QuoteResponse } from "../../types/index";
+import type { NodeCanvasRenderingContext2D } from "../../utils/canvas-compat";
 
 export function validateInput(data: QuoteResponse): void {
-	if (!data.quote || typeof data.quote !== 'string') {
-		throw new Error('Quote must be a non-empty string');
+	if (!data.quote || typeof data.quote !== "string") {
+		throw new Error("Quote must be a non-empty string");
 	}
-	if (!data.author || typeof data.author !== 'string') {
-		throw new Error('Author must be a non-empty string');
+	if (!data.author || typeof data.author !== "string") {
+		throw new Error("Author must be a non-empty string");
 	}
 }
 
 function applyShadow(
 	ctx: NodeCanvasRenderingContext2D,
 	options = {
-		color: 'rgba(255,255,255,0.4)',
+		color: "rgba(255,255,255,0.4)",
 		blur: 3,
 		offsetX: 1,
 		offsetY: 1,
@@ -29,25 +29,23 @@ function createGradientBackground(
 	ctx: NodeCanvasRenderingContext2D,
 	width: number,
 	height: number,
-	options?: QuoteResponse['gradient'],
+	options?: QuoteResponse["gradient"],
 ): { h: number; s: number; l: number } {
 	const h = Math.random() * 360;
 	const s = 50 + Math.random() * 30;
 	const l = 75 + Math.random() * 15;
 
-	let gradient;
-	if (options?.type === 'linear') {
-		gradient = ctx.createLinearGradient(0, 0, width, height);
-	} else {
-		gradient = ctx.createRadialGradient(
-			width / 2,
-			height / 2,
-			0,
-			width / 2,
-			height / 2,
-			Math.max(width, height) / 1.1,
-		);
-	}
+	const gradient =
+		options?.type === "linear"
+			? ctx.createLinearGradient(0, 0, width, height)
+			: ctx.createRadialGradient(
+					width / 2,
+					height / 2,
+					0,
+					width / 2,
+					height / 2,
+					Math.max(width, height) / 1.1,
+				);
 
 	if (options?.colors) {
 		options.colors.forEach((color, index) => {
@@ -74,7 +72,7 @@ function addPatternOverlay(
 	h: number,
 	s: number,
 	l: number,
-	pattern?: QuoteResponse['pattern'],
+	pattern?: QuoteResponse["pattern"],
 ): void {
 	const opacity = pattern?.opacity ?? 0.04;
 	const scale = pattern?.scale ?? 1;
@@ -82,7 +80,7 @@ function addPatternOverlay(
 	ctx.strokeStyle = `hsla(${h}, ${s}%, ${l - 30}%, ${opacity})`;
 
 	switch (pattern?.type) {
-		case 'dots': {
+		case "dots": {
 			const spacing = 30 * scale;
 			for (let x = spacing; x < width; x += spacing) {
 				for (let y = spacing; y < height; y += spacing) {
@@ -94,7 +92,7 @@ function addPatternOverlay(
 			break;
 		}
 
-		case 'grid':
+		case "grid":
 			ctx.lineWidth = 0.5 * scale;
 			for (let x = 0; x < width; x += 30 * scale) {
 				ctx.beginPath();
@@ -110,7 +108,7 @@ function addPatternOverlay(
 			}
 			break;
 
-		case 'waves': {
+		case "waves": {
 			ctx.lineWidth = 0.8 * scale;
 			const amplitude = 20 * scale;
 			const frequency = 0.02 / scale;
@@ -125,7 +123,7 @@ function addPatternOverlay(
 			break;
 		}
 
-		case 'chevron': {
+		case "chevron": {
 			ctx.lineWidth = 0.8 * scale;
 			const chevronWidth = 40 * scale;
 			const chevronHeight = 20 * scale;
@@ -140,8 +138,6 @@ function addPatternOverlay(
 			}
 			break;
 		}
-
-		case 'lines':
 		default:
 			ctx.lineWidth = 0.6 * scale;
 			for (let i = 0; i < width; i += 30 * scale) {
@@ -167,17 +163,17 @@ function addVignetteEffect(
 		height / 2,
 		height * 1.1,
 	);
-	vignette.addColorStop(0, 'rgba(0,0,0,0)');
-	vignette.addColorStop(0.6, 'rgba(0,0,0,0.08)');
-	vignette.addColorStop(1, 'rgba(0,0,0,0.18)');
+	vignette.addColorStop(0, "rgba(0,0,0,0)");
+	vignette.addColorStop(0.6, "rgba(0,0,0,0.08)");
+	vignette.addColorStop(1, "rgba(0,0,0,0.18)");
 	ctx.fillStyle = vignette;
 	ctx.fillRect(0, 0, width, height);
 }
 
 function setupTextStyle(ctx: NodeCanvasRenderingContext2D): void {
-	ctx.fillStyle = 'rgba(0,0,0,0.82)';
-	ctx.textAlign = 'center';
-	ctx.textBaseline = 'middle';
+	ctx.fillStyle = "rgba(0,0,0,0.82)";
+	ctx.textAlign = "center";
+	ctx.textBaseline = "middle";
 	applyShadow(ctx);
 }
 
@@ -234,15 +230,15 @@ function wrapText(
 	text: string,
 	maxWidth: number,
 ): string[] {
-	const words = text.split(' ');
+	const words = text.split(" ");
 	const lines: string[] = [];
-	let currentLine = '';
+	let currentLine = "";
 
 	for (const word of words) {
-		const testLine = currentLine + (currentLine ? ' ' : '') + word;
+		const testLine = currentLine + (currentLine ? " " : "") + word;
 		const metrics = ctx.measureText(testLine);
 
-		if (metrics.width > maxWidth && currentLine !== '') {
+		if (metrics.width > maxWidth && currentLine !== "") {
 			lines.push(currentLine);
 			currentLine = word;
 		} else {
@@ -271,14 +267,14 @@ function drawQuoteText(
 
 	// Draw opening quote mark with fallback fonts
 	applyShadow(ctx, {
-		color: 'rgba(255,255,255,0.5)',
+		color: "rgba(255,255,255,0.5)",
 		blur: 4,
 		offsetX: 1,
 		offsetY: 1,
 	});
 	ctx.font = `${fontSize * 1.7}px "Playfair Display", Georgia, "Times New Roman", serif`;
 	ctx.fillText(
-		'❝',
+		"❝",
 		width / 2 - maxWidth / 2 - quoteMarkOffset,
 		y - fontSize * 0.3,
 	);
@@ -294,14 +290,14 @@ function drawQuoteText(
 
 	// Draw closing quote mark with fallback fonts
 	applyShadow(ctx, {
-		color: 'rgba(255,255,255,0.5)',
+		color: "rgba(255,255,255,0.5)",
 		blur: 4,
 		offsetX: 1,
 		offsetY: 1,
 	});
 	ctx.font = `${fontSize * 1.7}px "Playfair Display", Georgia, "Times New Roman", serif`;
 	ctx.fillText(
-		'❞',
+		"❞",
 		width / 2 + maxWidth / 2 + quoteMarkOffset,
 		lastLineY + fontSize * 0.3,
 	);
@@ -316,7 +312,7 @@ function drawAuthor(
 	lastLineY: number,
 ): { authorY: number } {
 	applyShadow(ctx, {
-		color: 'rgba(255,255,255,0.3)',
+		color: "rgba(255,255,255,0.3)",
 		blur: 2,
 		offsetX: 1,
 		offsetY: 1,
@@ -333,12 +329,12 @@ function drawDecorativeFlourishes(
 	width: number,
 	authorY: number,
 ): void {
-	ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+	ctx.strokeStyle = "rgba(0,0,0,0.4)";
 	ctx.lineWidth = 1.5;
 	const lineWidth = ctx.measureText(`— ${author} —`).width * 0.9;
 
 	applyShadow(ctx, {
-		color: 'rgba(255,255,255,0.2)',
+		color: "rgba(255,255,255,0.2)",
 		blur: 1,
 		offsetX: 0,
 		offsetY: 1,
@@ -438,11 +434,11 @@ function calculateCanvasDimensions(quote: string): {
 export async function Quote(data: QuoteResponse): Promise<Buffer> {
 	validateInput(data);
 
-	const { createCanvas } = await import('../../utils/canvas-compat');
+	const { createCanvas } = await import("../../utils/canvas-compat");
 
 	const { width, height } = calculateCanvasDimensions(data.quote);
 	const canvas = createCanvas(width, height);
-	const ctx = canvas.getContext('2d');
+	const ctx = canvas.getContext("2d");
 
 	const { h, s, l } = createGradientBackground(
 		ctx,
