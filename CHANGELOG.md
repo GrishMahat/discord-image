@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.1.3] - 2025-12
+## [0.1.5] - 2025-12
 ### Added
 - Party Hat Meme Generator: Overlay a colorful party hat on any avatar image
   - Simple one-parameter API: `partyHat(imageUrl)`
