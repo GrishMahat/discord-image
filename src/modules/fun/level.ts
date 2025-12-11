@@ -579,7 +579,6 @@ export class RankCard {
 		) {
 			try {
 				avatarURL = this.getAvatarURL(this.avatar);
-				console.log(`Generated Discord avatar URL: ${avatarURL}`);
 			} catch (_error) {
 				console.warn(
 					"Error generating Discord avatar URL, using fallback image",

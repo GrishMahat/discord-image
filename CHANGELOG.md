@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.3] - 2025-12
+### Added
+- Party Hat Meme Generator: Overlay a colorful party hat on any avatar image
+  - Simple one-parameter API: `partyHat(imageUrl)`
+  - Automatic hat positioning at top-center of avatar
+  - Returns PNG buffer ready for Discord attachment
+  - (fix) path error
+
 ## [0.1.2]
   - WelcomeCard System
   - Dynamic welcome message generator with extensive customization options

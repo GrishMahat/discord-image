@@ -46,6 +46,7 @@ export { jail } from "./image/jail";
 export { kiss } from "./image/kiss";
 export { lisaPresentation } from "./image/lisaPresentation";
 export { notStonk } from "./image/notStonk";
+export { partyHat } from "./image/partyHat";
 export { rip } from "./image/rip";
 export { snyder } from "./image/snyder";
 export { spank } from "./image/spank";

@@ -18,6 +18,7 @@ export { jail } from "./jail";
 export { kiss } from "./kiss";
 export { lisaPresentation } from "./lisaPresentation";
 export { notStonk } from "./notStonk";
+export { partyHat } from "./partyHat";
 export { rip } from "./rip";
 export { snyder } from "./snyder";
 export { spank } from "./spank";

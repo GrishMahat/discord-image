@@ -20,7 +20,7 @@ A TypeScript library for generating and modifying images for use with Discord.js
   - Batslap, Ad, Beautiful, Bed
   - Clown, Hitler, Trash, Stonk/NotStonk
   - Spank, Snyder, RIP
-  - Lisa Presentation, Jail
+  - Lisa Presentation, Jail, Party Hat
   - Heartbreaking, Facepalm
   - Double Stonk, Confused Stonk
   - Deepfry, Bob Ross
@@ -171,6 +171,14 @@ Creates a "not stonks" meme with the image.
 
 #### `lisaPresentation(text: string): Promise<Buffer>`
 Creates a Lisa Simpson presentation meme with custom text.
+
+#### `partyHat(imageUrl: string): Promise<Buffer>`
+Overlays a colorful party hat on an avatar image.
+
+Example:
+```typescript
+const partyImage = await partyHat(userAvatarUrl);
+```
 
 ### Sticker Effect
 

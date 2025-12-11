@@ -44,6 +44,7 @@ import { jail } from "./modules/image/jail";
 import { kiss } from "./modules/image/kiss";
 import { lisaPresentation } from "./modules/image/lisaPresentation";
 import { notStonk } from "./modules/image/notStonk";
+import { partyHat } from "./modules/image/partyHat";
 import { rip } from "./modules/image/rip";
 import { snyder } from "./modules/image/snyder";
 import { spank } from "./modules/image/spank";
@@ -51,7 +52,12 @@ import { stonk } from "./modules/image/stonk";
 import { tatoo } from "./modules/image/tatoo";
 import { trash } from "./modules/image/trash";
 import { wanted } from "./modules/image/wanted";
-
+// asset validation
+import {
+	assertAssets,
+	getRegisteredAssets,
+	validateAssets,
+} from "./utils/asset-validator";
 // error handling
 import {
 	ConfigurationError,
@@ -97,6 +103,7 @@ export {
 	snyder,
 	rip,
 	notStonk,
+	partyHat,
 	lisaPresentation,
 	jail,
 	heartbreaking,
@@ -124,6 +131,9 @@ export {
 	TimeoutError,
 	ErrorHandler,
 	RetryHandler,
+	validateAssets,
+	assertAssets,
+	getRegisteredAssets,
 };
 
 // Export level as RankCard
@@ -158,6 +168,7 @@ const dig = {
 	snyder,
 	rip,
 	notStonk,
+	partyHat,
 	lisaPresentation,
 	jail,
 	heartbreaking,
