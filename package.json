@@ -103,13 +103,13 @@
     "clean": "rm -rf dist",
     "lint": "biome check src",
     "format": "biome format --write src",
-    "release": "changeset",
-    "version": "changeset version",
-    "publish": "pnpm run build && changeset publish"
+    "prepublishOnly": "pnpm run build",
+    "release": "npm version patch && npm publish",
+    "release:minor": "npm version minor && npm publish",
+    "release:major": "npm version major && npm publish"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.8",
-    "@changesets/cli": "2.28.1",
     "@types/gifencoder": "2.0.3",
     "@types/node": "^20.0.0",
     "canvas": "^3.1.2",
