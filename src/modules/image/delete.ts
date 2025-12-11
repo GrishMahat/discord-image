@@ -1,5 +1,6 @@
 import { Jimp } from "jimp";
 import type { ImageInput } from "../../types";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 
 export const Delete = async (image: ImageInput) => {
@@ -7,7 +8,7 @@ export const Delete = async (image: ImageInput) => {
 	if (!validateURL(image)) throw new Error("Invalid image URL");
 
 	try {
-		const background = await Jimp.read(`${__dirname}/../../assets/delete.png`);
+		const background = await Jimp.read(getAssetPath("delete.png"));
 		const imageToProcess = await Jimp.read(image);
 
 		imageToProcess.resize({ w: 195, h: 195 });

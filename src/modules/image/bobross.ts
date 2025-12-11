@@ -2,6 +2,7 @@
 
 import { Jimp } from "jimp";
 import type { ImageInput } from "../../types";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 
 export const bobross = async (image: ImageInput): Promise<Buffer> => {
@@ -13,7 +14,7 @@ export const bobross = async (image: ImageInput): Promise<Buffer> => {
 		throw new Error("Invalid URL provided");
 	}
 
-	const base = await Jimp.read(`${__dirname}/../../assets/bobross.png`);
+	const base = await Jimp.read(getAssetPath("bobross.png"));
 	const imageBuffer = await Jimp.read(image);
 	imageBuffer.resize({ w: 440, h: 440 });
 	const compositeImage = new Jimp({

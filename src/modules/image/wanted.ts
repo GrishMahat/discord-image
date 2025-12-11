@@ -8,6 +8,7 @@ import {
 	ImageProcessingError,
 	ValidationError,
 } from "../../utils/errors";
+import { getAssetPath } from "../../utils/paths";
 import { applyText, validateURL } from "../../utils/utils";
 
 /**
@@ -47,7 +48,7 @@ export const wanted = async (
 			const ctx = canvas.getContext("2d");
 
 			// Load template path
-			const templatePath = "../../assets/wanted.png";
+			const templatePath = getAssetPath("wanted.png");
 
 			// Load images with error handling
 			const [avatar, wantedTemplate] = await Promise.all([
@@ -79,7 +80,7 @@ export const wanted = async (
 			ctx.fillStyle = "#513d34";
 
 			// Get appropriate font size
-			ctx.font = await applyText(
+			ctx.font = applyText(
 				canvas as unknown as {
 					getContext: (
 						contextId: string,
@@ -92,11 +93,14 @@ export const wanted = async (
 				"Times New Roman",
 			);
 
-			// Draw bounty amount
+			// Draw bounty amount with subtle outline for readability
+			ctx.strokeStyle = "#f5f0e8";
+			ctx.lineWidth = 2;
+			ctx.strokeText(bountyText, 128, 315);
 			ctx.fillText(bountyText, 128, 315);
 
 			// Generate final image
-			const buffer = canvas.toBuffer();
+			const buffer = canvas.toBuffer("image/png");
 
 			if (!buffer || buffer.length === 0) {
 				throw new ImageProcessingError(

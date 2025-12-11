@@ -2,6 +2,7 @@
 
 import { Jimp } from "jimp";
 import type { ImageInput } from "../../types";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -22,9 +23,7 @@ export const notStonk = async (image: ImageInput): Promise<Buffer> => {
 	try {
 		const canvas = new Jimp({ width: 960, height: 576 });
 		const userImage = await Jimp.read(image);
-		const background = await Jimp.read(
-			`${__dirname}/../../assets/notStonk.png`,
-		);
+		const background = await Jimp.read(getAssetPath("notStonk.png"));
 
 		userImage.resize({ w: 190, h: 190 });
 		background.resize({ w: 960, h: 576 });

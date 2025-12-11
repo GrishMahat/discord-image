@@ -515,7 +515,7 @@ export async function Music(options: MusicImageOptions): Promise<Buffer> {
 		throw error; // Re-throw to handle errors properly
 	}
 
-	return canvas.toBuffer();
+	return canvas.toBuffer("image/png");
 }
 
 /**

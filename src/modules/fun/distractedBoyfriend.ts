@@ -1,16 +1,16 @@
 /** @format */
 
-import { join } from "node:path";
 import {
 	createCanvas,
 	loadImage,
 	registerFont,
 } from "../../utils/canvas-compat";
+import { getAssetPath } from "../../utils/paths";
 import { wrapText } from "../../utils/utils";
 
 // Register fonts
 try {
-	registerFont(join(__dirname, "../../assets/fonts/Noto-Regular.ttf"), {
+	registerFont(getAssetPath("fonts/Noto-Regular.ttf"), {
 		family: "Noto",
 	});
 } catch (error) {
@@ -51,9 +51,7 @@ export async function distractedBoyfriend(
 
 	try {
 		// Load template and setup canvas
-		const base = await loadImage(
-			join(__dirname, "../../assets/distracted-boyfriend.jpg"),
-		);
+		const base = await loadImage(getAssetPath("distracted-boyfriend.jpg"));
 		const canvas = createCanvas(base.width, base.height);
 		const ctx = canvas.getContext("2d");
 
@@ -78,7 +76,7 @@ export async function distractedBoyfriend(
 
 		// Draw each text label
 		for (const position of positions) {
-			const lines = await wrapText(ctx, position.text, position.maxWidth);
+			const lines = wrapText(ctx, position.text, position.maxWidth);
 			if (!lines) continue;
 
 			const lineHeight = settings.fontSize * 1.2;

@@ -6,6 +6,7 @@ import type {
 	NodeCanvasRenderingContext2D,
 } from "../../utils/canvas-compat";
 import { createCanvas, loadImage } from "../../utils/canvas-compat";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -30,7 +31,7 @@ export const snyder = async (image: ImageInput): Promise<Buffer> => {
 		// Load images
 		const [userImage, background] = await Promise.all([
 			loadImage(image),
-			loadImage(`${__dirname}/../../assets/snyder.png`),
+			loadImage(getAssetPath("snyder.png")),
 		]);
 
 		// Draw black background
@@ -43,7 +44,7 @@ export const snyder = async (image: ImageInput): Promise<Buffer> => {
 		// Draw snyder overlay
 		ctx.drawImage(background, 0, 0, 610, 343);
 
-		return canvas.toBuffer();
+		return canvas.toBuffer("image/png");
 	} catch (error) {
 		console.error("Error creating snyder meme:", error);
 		throw new Error(`Failed to create snyder meme: ${error}`);

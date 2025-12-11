@@ -2,6 +2,7 @@
 
 import { Jimp } from "jimp";
 import type { ImageInput } from "../../types";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -23,7 +24,7 @@ export const ad = async (image: ImageInput): Promise<Buffer> => {
 
 		// Load and process images
 		const userImage = await Jimp.read(image);
-		const background = await Jimp.read(`${__dirname}/../../assets/ad.png`);
+		const background = await Jimp.read(getAssetPath("ad.png"));
 
 		// Resize user image
 		userImage.resize({ w: 230, h: 230 });

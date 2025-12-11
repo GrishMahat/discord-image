@@ -1,7 +1,6 @@
 /** @format */
 
 /**
- * this ai slope so review it
  * Base error class for discord-image-utils
  */
 export class DiscordImageError extends Error {

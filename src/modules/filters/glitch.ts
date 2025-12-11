@@ -2,7 +2,42 @@
 
 import { Jimp } from "jimp";
 import type { ImageInput } from "../../types";
+import {
+	ErrorHandler,
+	ImageProcessingError,
+	ValidationError,
+} from "../../utils/errors";
 import { validateURL } from "../../utils/utils";
+
+/**
+ * Helper to safely create a color value as unsigned 32-bit
+ */
+function rgba(r: number, g: number, b: number, a: number): number {
+	return (
+		(((r & 0xff) << 24) |
+			((g & 0xff) << 16) |
+			((b & 0xff) << 8) |
+			(a & 0xff)) >>>
+		0
+	);
+}
+
+/**
+ * Extract RGBA components from a pixel
+ */
+function extractRGBA(pixel: number): {
+	r: number;
+	g: number;
+	b: number;
+	a: number;
+} {
+	return {
+		r: (pixel >>> 24) & 0xff,
+		g: (pixel >>> 16) & 0xff,
+		b: (pixel >>> 8) & 0xff,
+		a: pixel & 0xff,
+	};
+}
 
 /**
  * Applies a digital glitch effect to an image
@@ -14,146 +49,136 @@ export const glitch = async (
 	image: ImageInput,
 	intensity: number = 5,
 ): Promise<Buffer> => {
-	if (!image) {
-		throw new Error("You must provide an image as the first argument.");
-	}
+	return ErrorHandler.withErrorHandling(async () => {
+		ErrorHandler.validateRequired(image, "image");
 
-	const isValid = await validateURL(image);
-	if (!isValid) {
-		throw new Error("You must provide a valid image URL or buffer.");
-	}
+		const imageBuffer = await validateURL(image);
+		if (!imageBuffer) {
+			throw new ValidationError("Failed to load image", "image", image);
+		}
 
-	if (intensity < 1 || intensity > 10) {
-		throw new Error("Intensity must be between 1 and 10.");
-	}
+		if (intensity < 1 || intensity > 10) {
+			throw new ValidationError(
+				"Intensity must be between 1 and 10",
+				"intensity",
+				intensity,
+			);
+		}
 
-	try {
-		const jimpImage = await Jimp.read(image);
+		try {
+			const jimpImage = await Jimp.read(imageBuffer);
 
-		// Scale intensity to practical values
-		const rgbOffset = Math.floor((intensity / 10) * 15);
-		const corruptionChance = intensity / 20;
-		const scanlineCount = Math.floor((intensity / 10) * 10) + 1;
+			// Scale intensity to practical values
+			const rgbOffset = Math.floor((intensity / 10) * 15);
+			const corruptionChance = intensity / 20;
+			const scanlineCount = Math.floor((intensity / 10) * 10) + 1;
 
-		// Create RGB channel offset effect (chromatic aberration)
-		const width = jimpImage.bitmap.width;
-		const height = jimpImage.bitmap.height;
+			const width = jimpImage.bitmap.width;
+			const height = jimpImage.bitmap.height;
 
-		// Create copies for RGB channels
-		const redChannel = jimpImage.clone();
-		const blueChannel = jimpImage.clone();
+			// Create copies for RGB channels
+			const redChannel = jimpImage.clone();
+			const blueChannel = jimpImage.clone();
 
-		// Offset red channel to the left, blue to the right
-		for (let y = 0; y < height; y++) {
-			for (let x = 0; x < width; x++) {
-				// Red channel offset
-				if (x + rgbOffset < width) {
-					const redPixel = redChannel.getPixelColor(x + rgbOffset, y);
-					const originalPixel = jimpImage.getPixelColor(x, y);
+			// Apply chromatic aberration (RGB offset effect)
+			for (let y = 0; y < height; y++) {
+				for (let x = 0; x < width; x++) {
+					// Red channel offset
+					if (x + rgbOffset < width) {
+						const redPixel = redChannel.getPixelColor(x + rgbOffset, y);
+						const originalPixel = jimpImage.getPixelColor(x, y);
 
-					// Extract color components
-					const redRgba = {
-						r: (redPixel >> 24) & 0xff,
-						g: (redPixel >> 16) & 0xff,
-						b: (redPixel >> 8) & 0xff,
-						a: redPixel & 0xff,
-					};
+						const redRgba = extractRGBA(redPixel);
+						const origRgba = extractRGBA(originalPixel);
 
-					const origRgba = {
-						r: (originalPixel >> 24) & 0xff,
-						g: (originalPixel >> 16) & 0xff,
-						b: (originalPixel >> 8) & 0xff,
-						a: originalPixel & 0xff,
-					};
+						const newColor = rgba(
+							redRgba.r,
+							origRgba.g,
+							origRgba.b,
+							origRgba.a,
+						);
+						jimpImage.setPixelColor(newColor, x, y);
+					}
 
-					// Create new color with red channel from offset
-					const newColor =
-						(redRgba.r << 24) +
-						(origRgba.g << 16) +
-						(origRgba.b << 8) +
-						origRgba.a;
+					// Blue channel offset
+					if (x - rgbOffset >= 0) {
+						const bluePixel = blueChannel.getPixelColor(x - rgbOffset, y);
+						const currentPixel = jimpImage.getPixelColor(x, y);
 
+						const blueRgba = extractRGBA(bluePixel);
+						const currRgba = extractRGBA(currentPixel);
+
+						const newColor = rgba(
+							currRgba.r,
+							currRgba.g,
+							blueRgba.b,
+							currRgba.a,
+						);
+						jimpImage.setPixelColor(newColor, x, y);
+					}
+				}
+			}
+
+			// Add random horizontal corruption lines
+			const corruptionLines = Math.floor(height * corruptionChance);
+			for (let i = 0; i < corruptionLines; i++) {
+				const y = Math.floor(Math.random() * height);
+				const corruptionLength = Math.floor(Math.random() * (width * 0.3)) + 5;
+				const startX = Math.floor(Math.random() * (width - corruptionLength));
+				const displacement = Math.floor(Math.random() * 20) - 10;
+
+				for (let x = startX; x < startX + corruptionLength; x++) {
+					const srcX = x + displacement;
+					if (srcX >= 0 && srcX < width) {
+						const pixelColor = jimpImage.getPixelColor(srcX, y);
+						jimpImage.setPixelColor(pixelColor, x, y);
+					}
+				}
+			}
+
+			// Add scanlines
+			for (let i = 0; i < scanlineCount; i++) {
+				const y = Math.floor(Math.random() * height);
+				for (let x = 0; x < width; x++) {
+					const pixel = jimpImage.getPixelColor(x, y);
+					const { r, g, b, a } = extractRGBA(pixel);
+
+					// Brighten scanline
+					const boost = 40;
+					const newColor = rgba(
+						Math.min(r + boost, 255),
+						Math.min(g + boost, 255),
+						Math.min(b + boost, 255),
+						a,
+					);
 					jimpImage.setPixelColor(newColor, x, y);
 				}
-
-				// Blue channel offset
-				if (x - rgbOffset >= 0) {
-					const bluePixel = blueChannel.getPixelColor(x - rgbOffset, y);
-					const currentPixel = jimpImage.getPixelColor(x, y);
-
-					// Extract color components
-					const blueRgba = {
-						r: (bluePixel >> 24) & 0xff,
-						g: (bluePixel >> 16) & 0xff,
-						b: (bluePixel >> 8) & 0xff,
-						a: bluePixel & 0xff,
-					};
-
-					const currRgba = {
-						r: (currentPixel >> 24) & 0xff,
-						g: (currentPixel >> 16) & 0xff,
-						b: (currentPixel >> 8) & 0xff,
-						a: currentPixel & 0xff,
-					};
-
-					// Create new color with blue channel from offset
-					const newColor =
-						(currRgba.r << 24) +
-						(currRgba.g << 16) +
-						(blueRgba.b << 8) +
-						currRgba.a;
-
-					jimpImage.setPixelColor(newColor, x, y);
-				}
 			}
-		}
 
-		// Add random horizontal corruption lines
-		for (let i = 0; i < height * corruptionChance; i++) {
-			const y = Math.floor(Math.random() * height);
-			const corruptionLength = Math.floor(Math.random() * (width * 0.3)) + 5;
-			const startX = Math.floor(Math.random() * (width - corruptionLength));
+			const buffer = await jimpImage.getBuffer("image/png");
 
-			// Displace pixels horizontally
-			const displacement = Math.floor(Math.random() * 20) - 10;
-
-			for (let x = startX; x < startX + corruptionLength; x++) {
-				if (x + displacement >= 0 && x + displacement < width) {
-					const srcY = Math.min(y, height - 1);
-					const destY = Math.min(y, height - 1);
-					const pixelColor = jimpImage.getPixelColor(x + displacement, srcY);
-					jimpImage.setPixelColor(pixelColor, x, destY);
-				}
+			if (!buffer || buffer.length === 0) {
+				throw new ImageProcessingError(
+					"Generated image buffer is empty",
+					"glitch export",
+				);
 			}
-		}
 
-		// Add scanlines
-		for (let i = 0; i < scanlineCount; i++) {
-			const y = Math.floor(Math.random() * height);
-			for (let x = 0; x < width; x++) {
-				const pixel = jimpImage.getPixelColor(x, y);
-
-				// Extract color components
-				const r = (pixel >> 24) & 0xff;
-				const g = (pixel >> 16) & 0xff;
-				const b = (pixel >> 8) & 0xff;
-				const a = pixel & 0xff;
-
-				// Brighten scanline
-				const boost = 40;
-				const newColor =
-					(Math.min(r + boost, 255) << 24) +
-					(Math.min(g + boost, 255) << 16) +
-					(Math.min(b + boost, 255) << 8) +
-					a;
-
-				jimpImage.setPixelColor(newColor, x, y);
+			return buffer;
+		} catch (error) {
+			if (
+				error instanceof ValidationError ||
+				error instanceof ImageProcessingError
+			) {
+				throw error;
 			}
+			if (error instanceof Error) {
+				throw new ImageProcessingError(
+					`Failed to apply glitch effect: ${error.message}`,
+					"glitch",
+				);
+			}
+			throw error;
 		}
-
-		const buffer = await jimpImage.getBuffer("image/png");
-		return buffer;
-	} catch (error) {
-		throw new Error(`Failed to process image: ${error}`);
-	}
+	}, "glitch filter");
 };

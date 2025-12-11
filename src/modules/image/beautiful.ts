@@ -1,8 +1,8 @@
 /** @format */
 
-import { join } from "node:path";
 import { Jimp } from "jimp";
 import type { ImageInput } from "../../types";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -22,7 +22,7 @@ export const beautiful = async (image: ImageInput): Promise<Buffer> => {
 
 	try {
 		// Load and resize the template
-		const base = await Jimp.read(join(__dirname, "../../assets/beautiful.png"));
+		const base = await Jimp.read(getAssetPath("beautiful.png"));
 		base.resize({ w: 376, h: 400 });
 
 		// Load and resize the user image

@@ -1,5 +1,6 @@
 import { Jimp } from "jimp";
 import type { ImageInput } from "../../types";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -18,7 +19,7 @@ export const hitler = async (image: ImageInput): Promise<Buffer> => {
 	}
 
 	try {
-		const bg = await Jimp.read(`${__dirname}/../../assets/hitler.png`);
+		const bg = await Jimp.read(getAssetPath("hitler.png"));
 		const img = await Jimp.read(image);
 
 		img.resize({ w: 140, h: 140 });

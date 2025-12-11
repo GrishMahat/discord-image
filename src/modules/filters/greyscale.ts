@@ -2,6 +2,11 @@
 
 import { Jimp } from "jimp";
 import type { ImageInput } from "../../types";
+import {
+	ErrorHandler,
+	ImageProcessingError,
+	ValidationError,
+} from "../../utils/errors";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -10,22 +15,42 @@ import { validateURL } from "../../utils/utils";
  * @returns A Promise that resolves with a Buffer containing the processed image.
  */
 export const greyscale = async (image: ImageInput): Promise<Buffer> => {
-	const isValid = await validateURL(image);
-	if (!isValid) {
-		throw new Error("You must provide a valid image URL or buffer.");
-	}
+	return ErrorHandler.withErrorHandling(async () => {
+		ErrorHandler.validateRequired(image, "image");
 
-	try {
-		const jimpImage = await Jimp.read(image);
-		jimpImage.greyscale();
+		const imageBuffer = await validateURL(image);
+		if (!imageBuffer) {
+			throw new ValidationError("Failed to load image", "image", image);
+		}
 
-		const buffer = await jimpImage.getBuffer("image/png");
-		return buffer;
-	} catch (error) {
-		throw new Error(
-			`Failed to process the image: ${
-				error instanceof Error ? error.message : String(error)
-			}`,
-		);
-	}
+		try {
+			const jimpImage = await Jimp.read(imageBuffer);
+			jimpImage.greyscale();
+			const buffer = await jimpImage.getBuffer("image/png");
+
+			if (!buffer || buffer.length === 0) {
+				throw new ImageProcessingError(
+					"Generated image buffer is empty",
+					"greyscale export",
+				);
+			}
+
+			return buffer;
+		} catch (error) {
+			if (
+				error instanceof ValidationError ||
+				error instanceof ImageProcessingError
+			) {
+				throw error;
+			}
+			if (error instanceof Error) {
+				throw new ImageProcessingError(
+					`Failed to apply greyscale effect: ${error.message}`,
+					"greyscale",
+					{ imageSize: imageBuffer.length },
+				);
+			}
+			throw error;
+		}
+	}, "greyscale filter");
 };

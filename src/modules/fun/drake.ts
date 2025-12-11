@@ -1,16 +1,16 @@
 /** @format */
 
-import { join } from "node:path";
 import {
 	createCanvas,
 	loadImage,
 	registerFont,
 } from "../../utils/canvas-compat";
+import { getAssetPath } from "../../utils/paths";
 import { wrapText } from "../../utils/utils";
 
 // Register fonts
 try {
-	registerFont(join(__dirname, "../../assets/fonts/Noto-Regular.ttf"), {
+	registerFont(getAssetPath("fonts/Noto-Regular.ttf"), {
 		family: "Noto",
 	});
 } catch (error) {
@@ -24,9 +24,9 @@ interface DrakeOptions {
 }
 
 const DEFAULT_OPTIONS: Required<DrakeOptions> = {
-	fontSize: 32,
+	fontSize: 40,
 	textColor: "#000000",
-	bold: false,
+	bold: true,
 };
 
 /**
@@ -48,7 +48,7 @@ export async function drake(
 
 	try {
 		// Load template and setup canvas
-		const base = await loadImage(join(__dirname, "../../assets/drake.jpeg"));
+		const base = await loadImage(getAssetPath("drake.jpeg"));
 		const canvas = createCanvas(800, 800);
 		const ctx = canvas.getContext("2d");
 
@@ -76,14 +76,19 @@ export async function drake(
 			throw new Error("Failed to wrap text");
 		}
 
-		// Draw top panel text
+		// Draw top panel text with stroke for visibility
+		ctx.strokeStyle = "#FFFFFF";
+		ctx.lineWidth = 3;
+		ctx.lineJoin = "round";
 		lines1.forEach((line, i) => {
-			ctx.fillText(line, textX, 200 + i * 40);
+			ctx.strokeText(line, textX, 200 + i * 45);
+			ctx.fillText(line, textX, 200 + i * 45);
 		});
 
-		// Draw bottom panel text
+		// Draw bottom panel text with stroke
 		lines2.forEach((line, i) => {
-			ctx.fillText(line, textX, 600 + i * 40);
+			ctx.strokeText(line, textX, 600 + i * 45);
+			ctx.fillText(line, textX, 600 + i * 45);
 		});
 
 		return canvas.toBuffer("image/png");

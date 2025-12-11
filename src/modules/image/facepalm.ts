@@ -1,5 +1,6 @@
 import { Jimp } from "jimp";
 import type { ImageInput } from "../../types";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -19,7 +20,7 @@ export const facepalm = async (image: ImageInput): Promise<Buffer> => {
 		}
 
 		// Load the background facepalm image
-		const bg = await Jimp.read(`${__dirname}/../../assets/facepalm.png`);
+		const bg = await Jimp.read(getAssetPath("facepalm.png"));
 
 		// Load and resize the user's avatar
 		const avatar = await Jimp.read(image);

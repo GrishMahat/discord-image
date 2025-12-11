@@ -472,5 +472,5 @@ export async function Quote(data: QuoteResponse): Promise<Buffer> {
 	drawDecorativeFlourishes(ctx, data.author, width, authorY);
 	drawBorder(ctx, width, height, h, s, l);
 
-	return canvas.toBuffer();
+	return canvas.toBuffer("image/png");
 }

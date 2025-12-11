@@ -1,5 +1,6 @@
 import { Jimp } from "jimp";
 import type { ImageInput } from "../../types";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -29,7 +30,7 @@ export const spank = async (
 
 		// Load images
 		const [bg, userImage1, userImage2] = await Promise.all([
-			Jimp.read(`${__dirname}/../../assets/spank.png`),
+			Jimp.read(getAssetPath("spank.png")),
 			Jimp.read(image),
 			Jimp.read(image2),
 		]);

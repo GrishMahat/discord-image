@@ -9,6 +9,7 @@ import {
 	ImageProcessingError,
 	ValidationError,
 } from "../../utils/errors";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -34,7 +35,7 @@ export const triggered = async (
 
 		try {
 			// Load template path
-			const templatePath = "../../assets/triggered.png";
+			const templatePath = getAssetPath("triggered.png");
 
 			// Load images with error handling
 			const [base, img] = await Promise.all([
@@ -64,9 +65,9 @@ export const triggered = async (
 			const canvas = createCanvas(256, 310);
 			const ctx = canvas.getContext("2d");
 
-			// Constants for random offsets
-			const BACKGROUND_RANGE = 20; // Range for background image shake
-			const LABEL_RANGE = 10; // Range for "triggered" label shake
+			// Constants for random offsets - increased for more dramatic shake
+			const BACKGROUND_RANGE = 30; // Range for background image shake
+			const LABEL_RANGE = 15; // Range for "triggered" label shake
 
 			// Generate frames
 			for (let i = 0; i < 9; i++) {
@@ -83,8 +84,8 @@ export const triggered = async (
 						310 - 54 + BACKGROUND_RANGE,
 					);
 
-					// Add red overlay
-					ctx.fillStyle = "#FF000033";
+					// Add red overlay - stronger tint
+					ctx.fillStyle = "#FF000044";
 					ctx.fillRect(0, 0, 256, 310);
 
 					// Draw shaking "triggered" label

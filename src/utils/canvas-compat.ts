@@ -1,7 +1,6 @@
 /** @format */
 
 /**
- * this this witten by ai so review it
  * Canvas compatibility layer
  * Supports both node-canvas and @napi-rs/canvas for better Node.js compatibility
  */
@@ -36,7 +35,7 @@ try {
 		}
 	};
 
-	console.log("Using @napi-rs/canvas for better performance and compatibility");
+	// @napi-rs/canvas loaded successfully
 } catch (napiError: any) {
 	try {
 		// Fallback to node-canvas
@@ -55,7 +54,7 @@ try {
 			}
 		};
 
-		console.log("Using node-canvas (fallback)");
+		// node-canvas loaded as fallback
 	} catch (canvasError: any) {
 		throw new Error(
 			"No canvas implementation found. Please install either @napi-rs/canvas or canvas:\n" +

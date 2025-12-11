@@ -302,7 +302,7 @@ function isImageContentType(contentType: string): boolean {
  * @param width The maximum width
  * @param font The font family
  */
-export async function applyText(
+export function applyText(
 	canvas: {
 		getContext: (
 			contextId: string,
@@ -313,7 +313,7 @@ export async function applyText(
 	defaultFontSize: number,
 	width: number,
 	font: string,
-): Promise<string> {
+): string {
 	const ctx = canvas.getContext("2d");
 	do {
 		ctx.font = `${defaultFontSize--}px ${font}`;
@@ -327,45 +327,43 @@ export async function applyText(
  * @param text The text to wrap
  * @param maxWidth The maximum width allowed
  */
-export async function wrapText(
+export function wrapText(
 	ctx: NodeCanvasRenderingContext2D,
 	text: string,
 	maxWidth: number,
-): Promise<string[] | null> {
-	return new Promise((resolve) => {
-		if (ctx.measureText(text).width < maxWidth) return resolve([text]);
-		if (ctx.measureText("W").width > maxWidth) return resolve(null);
+): string[] | null {
+	if (ctx.measureText(text).width < maxWidth) return [text];
+	if (ctx.measureText("W").width > maxWidth) return null;
 
-		const words = text.split(" ");
-		const lines: string[] = [];
-		let line = "";
+	const words = text.split(" ");
+	const lines: string[] = [];
+	let line = "";
 
-		while (words.length > 0) {
-			let split = false;
+	while (words.length > 0) {
+		let split = false;
 
-			while (ctx.measureText(words[0]).width >= maxWidth) {
-				const temp = words[0];
-				words[0] = temp.slice(0, -1);
-				if (split) {
-					words[1] = `${temp.slice(-1)}${words[1]}`;
-				} else {
-					split = true;
-					words.splice(1, 0, temp.slice(-1));
-				}
-			}
-
-			if (ctx.measureText(`${line}${words[0]}`).width < maxWidth) {
-				line += `${words.shift()} `;
+		while (ctx.measureText(words[0]).width >= maxWidth) {
+			const temp = words[0];
+			words[0] = temp.slice(0, -1);
+			if (split) {
+				words[1] = `${temp.slice(-1)}${words[1]}`;
 			} else {
-				lines.push(line.trim());
-				line = "";
-			}
-
-			if (words.length === 0) {
-				lines.push(line.trim());
+				split = true;
+				words.splice(1, 0, temp.slice(-1));
 			}
 		}
 
-		return resolve(lines);
-	});
+		if (ctx.measureText(`${line}${words[0]}`).width < maxWidth) {
+			line += `${words.shift()} `;
+		} else {
+			lines.push(line.trim());
+			line = "";
+		}
+
+		if (words.length === 0) {
+			lines.push(line.trim());
+		}
+	}
+
+	return lines;
 }

@@ -1,5 +1,6 @@
 import { Jimp } from "jimp";
 import type { ImageInput } from "../../types";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -24,7 +25,7 @@ export const Batslap = async (
 	if (!isValid2)
 		throw new Error("You must provide a valid image URL or buffer.");
 
-	const base = await Jimp.read(`${__dirname}/../../assets/batslap.png`);
+	const base = await Jimp.read(getAssetPath("batslap.png"));
 	const img1 = await Jimp.read(image1);
 	const img2 = await Jimp.read(image2);
 

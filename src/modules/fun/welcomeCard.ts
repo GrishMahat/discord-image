@@ -220,7 +220,7 @@ export const welcomeCard = async (
 		}
 
 		// Return the processed image
-		return canvas.toBuffer();
+		return canvas.toBuffer("image/png");
 	} catch (error) {
 		throw new Error(`Failed to create welcome card: ${error}`);
 	}

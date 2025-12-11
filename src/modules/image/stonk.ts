@@ -1,5 +1,14 @@
+/** @format */
+
 import type { ImageInput } from "../../types";
 import { createCanvas, loadImage } from "../../utils/canvas-compat";
+import {
+	ErrorHandler,
+	FileSystemError,
+	ImageProcessingError,
+	ValidationError,
+} from "../../utils/errors";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -8,30 +17,58 @@ import { validateURL } from "../../utils/utils";
  * @returns Buffer containing the processed image
  */
 export const stonk = async (image: ImageInput): Promise<Buffer> => {
-	try {
-		if (!image) {
-			throw new Error("Image is required");
+	return ErrorHandler.withErrorHandling(async () => {
+		ErrorHandler.validateRequired(image, "image");
+
+		const imageBuffer = await validateURL(image);
+		if (!imageBuffer) {
+			throw new ValidationError("Failed to load image", "image", image);
 		}
 
-		const isValid = await validateURL(image);
-		if (!isValid) {
-			throw new Error("Invalid URL provided");
+		try {
+			const canvas = createCanvas(900, 539);
+			const ctx = canvas.getContext("2d");
+
+			// Load and draw the user image
+			const userImage = await loadImage(imageBuffer);
+			ctx.drawImage(userImage, 70, 40, 240, 240);
+
+			// Load and draw the stonk background
+			const templatePath = getAssetPath("stonk.png");
+			const background = await loadImage(templatePath).catch((error: any) => {
+				throw new FileSystemError(
+					`Failed to load stonk template: ${error.message}`,
+					templatePath,
+					"loadTemplate",
+				);
+			});
+			ctx.drawImage(background, 0, 0, 900, 539);
+
+			const buffer = canvas.toBuffer("image/png");
+			if (!buffer || buffer.length === 0) {
+				throw new ImageProcessingError(
+					"Generated image buffer is empty",
+					"stonk export",
+				);
+			}
+
+			return buffer;
+		} catch (error) {
+			if (
+				error instanceof ValidationError ||
+				error instanceof ImageProcessingError ||
+				error instanceof FileSystemError
+			) {
+				throw error;
+			}
+			if (error instanceof Error) {
+				throw new ImageProcessingError(
+					`Failed to create stonk meme: ${error.message}`,
+					"stonk",
+					{ imageSize: imageBuffer.length },
+				);
+			}
+			throw error;
 		}
-
-		const canvas = createCanvas(900, 539);
-		const ctx = canvas.getContext("2d");
-
-		// Load and draw the user image
-		const userImage = await loadImage(image);
-		ctx.drawImage(userImage, 70, 40, 240, 240);
-
-		// Load and draw the stonk background
-		const background = await loadImage(`${__dirname}/../../assets/stonk.png`);
-		ctx.drawImage(background, 0, 0, 900, 539);
-
-		return canvas.toBuffer();
-	} catch (error) {
-		console.error("Error creating stonk meme:", error);
-		throw new Error(`Failed to create stonk meme: ${error}`);
-	}
+	}, "stonk meme generator");
 };

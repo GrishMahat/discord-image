@@ -1,5 +1,6 @@
 import type { ImageInput } from "../../types";
 import { createCanvas, loadImage } from "../../utils/canvas-compat";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -26,12 +27,10 @@ export const heartbreaking = async (image: ImageInput): Promise<Buffer> => {
 		ctx.drawImage(img, 0, 150, 610, 610);
 
 		// Load and draw the heartbreaking overlay
-		const background = await loadImage(
-			`${__dirname}/../../assets/heartbreaking.png`,
-		);
+		const background = await loadImage(getAssetPath("heartbreaking.png"));
 		ctx.drawImage(background, 0, 0, 610, 797);
 
-		return canvas.toBuffer();
+		return canvas.toBuffer("image/png");
 	} catch (error) {
 		console.error("Error creating heartbreaking effect:", error);
 		throw new Error(`Failed to create heartbreaking effect: ${error}`);

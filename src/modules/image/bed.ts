@@ -1,5 +1,6 @@
 import { Jimp } from "jimp";
 import type { ImageInput } from "../../types";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -31,7 +32,7 @@ export const bed = async (
 	}
 
 	try {
-		const bg = await Jimp.read(`${__dirname}/../../assets/bed.png`);
+		const bg = await Jimp.read(getAssetPath("bed.png"));
 		const img1 = await Jimp.read(image1);
 		const img2 = await Jimp.read(image2);
 

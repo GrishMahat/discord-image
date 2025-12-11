@@ -16,8 +16,9 @@ build/
 
 # Testing
 coverage/
-test.ts
-
+test-output/
+test-qa.mjs
+test-all.mjs
 # Logs
 logs
 *.log

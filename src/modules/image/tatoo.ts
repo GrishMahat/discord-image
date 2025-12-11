@@ -1,6 +1,6 @@
-import { join } from "node:path";
 import type { ImageInput } from "../../types";
 import { createCanvas, loadImage } from "../../utils/canvas-compat";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -26,7 +26,7 @@ export const tatoo = async (image: ImageInput): Promise<Buffer> => {
 		// Load images
 		const [avatar, tatooTemplate] = await Promise.all([
 			loadImage(image),
-			loadImage(join(__dirname, "../../assets/tatoo.png")),
+			loadImage(getAssetPath("tatoo.png")),
 		]);
 
 		// Draw the user's image first
@@ -35,7 +35,7 @@ export const tatoo = async (image: ImageInput): Promise<Buffer> => {
 		// Overlay the tattoo template
 		ctx.drawImage(tatooTemplate, 0, 0, 750, 1089);
 
-		return canvas.toBuffer();
+		return canvas.toBuffer("image/png");
 	} catch (error) {
 		throw new Error(`Failed to generate tattoo image: ${error}`);
 	}

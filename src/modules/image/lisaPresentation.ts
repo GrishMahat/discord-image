@@ -1,17 +1,17 @@
-import path from "node:path";
 import type { NodeCanvasRenderingContext2D } from "../../utils/canvas-compat";
 import {
 	createCanvas,
 	loadImage,
 	registerFont,
 } from "../../utils/canvas-compat";
+import { getAssetPath } from "../../utils/paths";
 import { wrapText } from "../../utils/utils";
 
 // Register fonts
-registerFont(`${__dirname}/../../assets/fonts/Noto-Regular.ttf`, {
+registerFont(getAssetPath("fonts/Noto-Regular.ttf"), {
 	family: `Noto`,
 });
-registerFont(`${__dirname}/../../assets/fonts/Noto-Emoji.ttf`, {
+registerFont(getAssetPath("fonts/Noto-Emoji.ttf"), {
 	family: `Noto`,
 });
 
@@ -28,9 +28,7 @@ export const lisaPresentation = async (text: string): Promise<Buffer> => {
 	}
 
 	// Load and setup canvas
-	const base = await loadImage(
-		path.join(`${__dirname}/../../assets/lisa-presentation.png`),
-	);
+	const base = await loadImage(getAssetPath("lisa-presentation.png"));
 	const canvas = createCanvas(base.width, base.height);
 	const ctx = canvas.getContext("2d") as NodeCanvasRenderingContext2D;
 
@@ -50,7 +48,7 @@ export const lisaPresentation = async (text: string): Promise<Buffer> => {
 	}
 
 	// Wrap and position text
-	const lines = await wrapText(ctx, text, 330);
+	const lines = wrapText(ctx, text, 330);
 	if (!lines) {
 		throw new Error("Failed to wrap text");
 	}
@@ -60,11 +58,19 @@ export const lisaPresentation = async (text: string): Promise<Buffer> => {
 		185 -
 		((fontSize * lines.length) / 2 + (lineSpacing * (lines.length - 1)) / 2);
 
-	// Draw text lines
+	// Draw text lines with shadow for visibility
+	ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
+	ctx.shadowBlur = 2;
+	ctx.shadowOffsetX = 1;
+	ctx.shadowOffsetY = 1;
+
 	lines.forEach((line, i) => {
 		const height = topMost + (fontSize + lineSpacing) * i;
 		ctx.fillText(line, base.width / 2, height);
 	});
 
-	return canvas.toBuffer();
+	// Reset shadow
+	ctx.shadowColor = "transparent";
+
+	return canvas.toBuffer("image/png");
 };

@@ -1,5 +1,6 @@
 import type { ImageInput } from "../../types";
 import { createCanvas, loadImage } from "../../utils/canvas-compat";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -25,7 +26,7 @@ export const rip = async (image: ImageInput): Promise<Buffer> => {
 		// Load images
 		const [avatar, background] = await Promise.all([
 			loadImage(image),
-			loadImage(`${__dirname}/../../assets/rip.png`),
+			loadImage(getAssetPath("rip.png")),
 		]);
 
 		// Draw avatar first
@@ -34,7 +35,7 @@ export const rip = async (image: ImageInput): Promise<Buffer> => {
 		// Draw background overlay
 		ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 
-		return canvas.toBuffer();
+		return canvas.toBuffer("image/png");
 	} catch (error) {
 		console.error("Error creating rip meme:", error);
 		throw new Error(`Failed to create rip meme: ${error}`);

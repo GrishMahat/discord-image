@@ -838,7 +838,7 @@ export class RankCard {
 				break;
 		}
 
-		return canvas.toBuffer();
+		return canvas.toBuffer("image/png");
 	}
 
 	// Move the existing render code to a new method for the classic layout

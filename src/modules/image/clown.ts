@@ -4,6 +4,7 @@ import type {
 	NodeCanvasRenderingContext2D,
 } from "../../utils/canvas-compat";
 import { createCanvas, loadImage } from "../../utils/canvas-compat";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -46,7 +47,7 @@ export const clown = async (image: ImageInput): Promise<Buffer> => {
 		// Load images
 		const [userImage, background] = await Promise.all([
 			loadImage(image),
-			loadImage(`${__dirname}/../../assets/clown.png`),
+			loadImage(getAssetPath("clown.png")),
 		]);
 
 		// Draw the base canvas
@@ -58,7 +59,7 @@ export const clown = async (image: ImageInput): Promise<Buffer> => {
 		// Overlay the clown template
 		ctx.drawImage(background, 0, 0, 610, 343);
 
-		return canvas.toBuffer();
+		return canvas.toBuffer("image/png");
 	} catch (error) {
 		throw new Error(`Failed to process image: ${error}`);
 	}

@@ -1,8 +1,8 @@
 /** @format */
 
-import { join } from "node:path";
 import { Jimp } from "jimp";
 import type { ImageInput } from "../../types";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 /**
  * Creates a kiss meme from two images
@@ -33,7 +33,7 @@ export const kiss = async (
 		}
 
 		// Use path.join for better path resolution
-		const assetPath = join(__dirname, "../../assets/kiss.png");
+		const assetPath = getAssetPath("kiss.png");
 		const base = await Jimp.read(assetPath);
 		const avatar = await Jimp.read(image);
 		const avatar2 = await Jimp.read(image2);

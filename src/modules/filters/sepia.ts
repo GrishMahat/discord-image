@@ -1,5 +1,12 @@
+/** @format */
+
 import { Jimp } from "jimp";
 import type { ImageInput } from "../../types";
+import {
+	ErrorHandler,
+	ImageProcessingError,
+	ValidationError,
+} from "../../utils/errors";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -8,22 +15,42 @@ import { validateURL } from "../../utils/utils";
  * @returns Promise<Buffer> - The generated sepia image
  */
 export const sepia = async (image: ImageInput): Promise<Buffer> => {
-	if (!image) {
-		throw new Error("You must provide an image as the first argument.");
-	}
+	return ErrorHandler.withErrorHandling(async () => {
+		ErrorHandler.validateRequired(image, "image");
 
-	const isValid = await validateURL(image);
-	if (!isValid) {
-		throw new Error("You must provide a valid image URL or buffer.");
-	}
+		const imageBuffer = await validateURL(image);
+		if (!imageBuffer) {
+			throw new ValidationError("Failed to load image", "image", image);
+		}
 
-	try {
-		const jimpImage = await Jimp.read(image);
-		jimpImage.sepia();
+		try {
+			const jimpImage = await Jimp.read(imageBuffer);
+			jimpImage.sepia();
+			const buffer = await jimpImage.getBuffer("image/png");
 
-		const buffer = await jimpImage.getBuffer("image/png");
-		return buffer;
-	} catch (error) {
-		throw new Error(`Failed to process the image: ${error}`);
-	}
+			if (!buffer || buffer.length === 0) {
+				throw new ImageProcessingError(
+					"Generated image buffer is empty",
+					"sepia export",
+				);
+			}
+
+			return buffer;
+		} catch (error) {
+			if (
+				error instanceof ValidationError ||
+				error instanceof ImageProcessingError
+			) {
+				throw error;
+			}
+			if (error instanceof Error) {
+				throw new ImageProcessingError(
+					`Failed to apply sepia effect: ${error.message}`,
+					"sepia",
+					{ imageSize: imageBuffer.length },
+				);
+			}
+			throw error;
+		}
+	}, "sepia filter");
 };

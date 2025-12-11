@@ -1,5 +1,6 @@
 import { Jimp } from "jimp";
 import type { ImageInput } from "../../types";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 
 export const confusedStonk = async (image: ImageInput): Promise<Buffer> => {
@@ -18,9 +19,7 @@ export const confusedStonk = async (image: ImageInput): Promise<Buffer> => {
 		image1.resize({ w: 400, h: 400 });
 
 		// Load the background image
-		const background = await Jimp.read(
-			`${__dirname}/../../assets/confusedStonk.png`,
-		);
+		const background = await Jimp.read(getAssetPath("confusedStonk.png"));
 
 		// Create composite image with background dimensions
 		const compositeImage = new Jimp({

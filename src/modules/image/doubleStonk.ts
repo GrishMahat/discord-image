@@ -1,5 +1,6 @@
 import { Jimp } from "jimp";
 import type { ImageInput } from "../../types";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 
 export const doubleStonk = async (
@@ -18,7 +19,7 @@ export const doubleStonk = async (
 
 	try {
 		// Load and prepare base image
-		const base = await Jimp.read(`${__dirname}/../../assets/doubleStonk.png`);
+		const base = await Jimp.read(getAssetPath("doubleStonk.png"));
 		base.resize({ w: 577, h: 431 });
 
 		// Load and prepare first avatar

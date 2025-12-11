@@ -1,8 +1,8 @@
 /** @format */
 
-import { join } from "node:path";
 import type { ImageInput } from "../../types";
 import { createCanvas, loadImage } from "../../utils/canvas-compat";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -40,7 +40,7 @@ export const affect = async (
 		}
 
 		// Construct path to the template image
-		const templatePath = join(__dirname, "../../assets/affect.png");
+		const templatePath = getAssetPath("affect.png");
 
 		// Load both images concurrently
 		const [template, userImage] = await Promise.all([

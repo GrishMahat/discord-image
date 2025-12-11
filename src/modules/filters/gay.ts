@@ -1,8 +1,8 @@
 /** @format */
 
-import { join } from "node:path";
 import type { ImageInput } from "../../types";
 import { createCanvas, loadImage } from "../../utils/canvas-compat";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -24,7 +24,7 @@ export const gay = async (image: ImageInput): Promise<Buffer> => {
 
 	try {
 		// Construct the absolute path to the overlay asset.
-		const assetPath = join(__dirname, "../../assets/gay.png");
+		const assetPath = getAssetPath("gay.png");
 
 		// Load both the overlay and the user image concurrently.
 		const [bg, img] = await Promise.all([
