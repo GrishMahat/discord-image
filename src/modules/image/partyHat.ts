@@ -7,11 +7,11 @@ import { validateURL } from "../../utils/utils";
  * Overlay a party hat on an avatar image
  * @param image - The image URL or buffer to add the party hat to
  * @returns Buffer containing the processed image with party hat overlay
- * 
+ *
  * @example
  * ```ts
  * import { partyHat } from 'discord-image-utils';
- * 
+ *
  * const result = await partyHat('https://example.com/avatar.png');
  * // Returns a Buffer with the avatar + party hat
  * ```
@@ -42,9 +42,7 @@ export const partyHat = async (image: ImageInput): Promise<Buffer> => {
 
 	// Resize party hat to fit nicely on top (approximately 40% of canvas width)
 	const hatWidth = 160;
-	const hatHeight = Math.round(
-		hatWidth * (hat.height / hat.width)
-	);
+	const hatHeight = Math.round(hatWidth * (hat.height / hat.width));
 	hat.resize({ w: hatWidth, h: hatHeight });
 
 	// Position hat at top-center of the avatar
