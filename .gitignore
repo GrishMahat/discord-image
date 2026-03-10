@@ -6,6 +6,7 @@ node_modules/
 # pnpm specific
 .pnpm-debug.log
 .pnpm-store/
+.npm-cache/
 
 # Production build
 dist/

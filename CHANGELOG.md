@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased] - 2026-03-08
+## [0.1.6] - 2026-03-10
 ### Added
 - New npm scripts for generation checks:
   - `test:gen-all`
