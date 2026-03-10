@@ -625,9 +625,10 @@ export class RankCard {
 	}
 
 	/**
-	 * Draw text elements on the canvas
+	 * Dead code kept intentionally for future level-card variants.
+	 * It may be reused later or removed once the layout direction settles.
 	 */
-	private drawText(ctx: any, textX: number, currentY: number): number {
+	private _drawText(ctx: any, textX: number, currentY: number): number {
 		const fontWeight = this.bold ? "bold" : "normal";
 		const fontFamily = this.fontFamily || THEMES[this.theme].fontFamily;
 		ctx.font = `${fontWeight} ${this.fontSize}px ${fontFamily}`;
@@ -713,9 +714,10 @@ export class RankCard {
 	}
 
 	/**
-	 * Draw progress bar on the canvas
+	 * Dead code kept intentionally for future level-card variants.
+	 * It may be reused later or removed once the layout direction settles.
 	 */
-	private drawProgressBar(
+	private _drawProgressBar(
 		ctx: any,
 		progress: number,
 		x: number,
@@ -786,6 +788,8 @@ export class RankCard {
 	 * Render the rank card and return a buffer
 	 */
 	async render(): Promise<Buffer> {
+		this.retainDeadCodeReferences();
+
 		// Validate required fields
 		if (!this.name) {
 			throw new Error("Name must be provided. Use setName() method.");
@@ -960,7 +964,10 @@ export class RankCard {
 		ctx.lineWidth = 1;
 		ctx.stroke();
 
-		ctx.fillStyle = this.adjustColorAlpha(themeConfig.textColor || "#FFFFFF", 0.62);
+		ctx.fillStyle = this.adjustColorAlpha(
+			themeConfig.textColor || "#FFFFFF",
+			0.62,
+		);
 		ctx.font = `700 11px ${this.fontFamily || themeConfig.fontFamily || "sans-serif"}`;
 		ctx.fillText(label, x + 16, y + 20);
 
@@ -982,7 +989,10 @@ export class RankCard {
 		roundRect(ctx, x, y, width, height, height / 2);
 		ctx.fillStyle =
 			this.progressBarBackgroundColor ||
-			this.adjustColorAlpha(themeConfig.progressBarBackgroundColor || "#1f2937", 0.85);
+			this.adjustColorAlpha(
+				themeConfig.progressBarBackgroundColor || "#1f2937",
+				0.85,
+			);
 		ctx.fill();
 		ctx.strokeStyle =
 			this.progressBarBorderColor || this.adjustColorAlpha(accentColor, 0.24);
@@ -998,7 +1008,10 @@ export class RankCard {
 				fillGradient.addColorStop(stop.position, stop.color);
 			}
 		} else {
-			fillGradient.addColorStop(0, this.adjustColorBrightness(accentColor, 0.18));
+			fillGradient.addColorStop(
+				0,
+				this.adjustColorBrightness(accentColor, 0.18),
+			);
 			fillGradient.addColorStop(1, accentColor);
 		}
 
@@ -1035,16 +1048,24 @@ export class RankCard {
 
 		const accentColor =
 			this.progressBarColor || themeConfig.progressBarColor || "#7c3aed";
-		const softAccent = this.adjustColorAlpha(accentColor, isHud ? 0.28 : 0.2);
-		const panelColor = isHud ? "rgba(8, 16, 28, 0.78)" : "rgba(13, 18, 28, 0.76)";
+		const _softAccent = this.adjustColorAlpha(accentColor, isHud ? 0.28 : 0.2);
+		const panelColor = isHud
+			? "rgba(8, 16, 28, 0.78)"
+			: "rgba(13, 18, 28, 0.76)";
 
 		if (this.backgroundImage) {
 			try {
 				const bgImage = await loadImage(this.backgroundImage);
 				this.drawImageCover(ctx, bgImage, width, height);
 				const bgOverlay = ctx.createLinearGradient(0, 0, width, height);
-				bgOverlay.addColorStop(0, isHud ? "rgba(4, 10, 20, 0.62)" : "rgba(8, 10, 18, 0.54)");
-				bgOverlay.addColorStop(1, isHud ? "rgba(4, 10, 20, 0.82)" : "rgba(8, 10, 18, 0.78)");
+				bgOverlay.addColorStop(
+					0,
+					isHud ? "rgba(4, 10, 20, 0.62)" : "rgba(8, 10, 18, 0.54)",
+				);
+				bgOverlay.addColorStop(
+					1,
+					isHud ? "rgba(4, 10, 20, 0.82)" : "rgba(8, 10, 18, 0.78)",
+				);
 				ctx.fillStyle = bgOverlay;
 				ctx.fillRect(0, 0, width, height);
 			} catch (_error) {
@@ -1066,9 +1087,17 @@ export class RankCard {
 		const shellHeight = height - shellY * 2;
 		const shellRadius = 28;
 
-		const shellGradient = ctx.createLinearGradient(shellX, shellY, width, height);
+		const shellGradient = ctx.createLinearGradient(
+			shellX,
+			shellY,
+			width,
+			height,
+		);
 		shellGradient.addColorStop(0, panelColor);
-		shellGradient.addColorStop(1, isHud ? "rgba(7, 12, 20, 0.9)" : "rgba(17, 21, 30, 0.84)");
+		shellGradient.addColorStop(
+			1,
+			isHud ? "rgba(7, 12, 20, 0.9)" : "rgba(17, 21, 30, 0.84)",
+		);
 		ctx.fillStyle = shellGradient;
 		roundRect(ctx, shellX, shellY, shellWidth, shellHeight, shellRadius);
 		ctx.fill();
@@ -1113,30 +1142,63 @@ export class RankCard {
 
 		ctx.fillStyle = "rgba(255,255,255,0.06)";
 		ctx.beginPath();
-		ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2 + 12, 0, Math.PI * 2);
+		ctx.arc(
+			avatarX + avatarSize / 2,
+			avatarY + avatarSize / 2,
+			avatarSize / 2 + 12,
+			0,
+			Math.PI * 2,
+		);
 		ctx.fill();
 
 		ctx.save();
 		ctx.beginPath();
-		ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
+		ctx.arc(
+			avatarX + avatarSize / 2,
+			avatarY + avatarSize / 2,
+			avatarSize / 2,
+			0,
+			Math.PI * 2,
+		);
 		ctx.closePath();
 		ctx.clip();
 		ctx.drawImage(avatarImg, avatarX, avatarY, avatarSize, avatarSize);
 		ctx.restore();
 
 		ctx.beginPath();
-		ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2 + 6, 0, Math.PI * 2);
+		ctx.arc(
+			avatarX + avatarSize / 2,
+			avatarY + avatarSize / 2,
+			avatarSize / 2 + 6,
+			0,
+			Math.PI * 2,
+		);
 		ctx.strokeStyle = this.avatarBorder || accentColor;
 		ctx.lineWidth = this.avatarBorderWidth;
 		ctx.stroke();
 
 		ctx.beginPath();
-		ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2 + 14, 0, Math.PI * 2);
+		ctx.arc(
+			avatarX + avatarSize / 2,
+			avatarY + avatarSize / 2,
+			avatarSize / 2 + 14,
+			0,
+			Math.PI * 2,
+		);
 		ctx.strokeStyle = this.adjustColorAlpha(accentColor, 0.18);
 		ctx.lineWidth = 1.5;
 		ctx.stroke();
 
-		this.drawInfoChip(ctx, leftX + 18, leftY + leftHeight - 90, leftWidth - 36, 28, "LEVEL", `#${this.level}`, accentColor);
+		this.drawInfoChip(
+			ctx,
+			leftX + 18,
+			leftY + leftHeight - 90,
+			leftWidth - 36,
+			28,
+			"LEVEL",
+			`#${this.level}`,
+			accentColor,
+		);
 		this.drawInfoChip(
 			ctx,
 			leftX + 18,
@@ -1148,7 +1210,8 @@ export class RankCard {
 			accentColor,
 		);
 
-		const headingFont = this.fontFamily || themeConfig.fontFamily || "sans-serif";
+		const headingFont =
+			this.fontFamily || themeConfig.fontFamily || "sans-serif";
 		const titleSize = Math.max(this.fontSize + 10, 28);
 		ctx.fillStyle = this.adjustColorAlpha(themeConfig.textColor || "#fff", 0.7);
 		ctx.font = `700 14px ${headingFont}`;
@@ -1156,7 +1219,10 @@ export class RankCard {
 
 		ctx.fillStyle = this.textColor || themeConfig.textColor || "#FFFFFF";
 		ctx.font = `${this.bold ? "700" : "600"} ${titleSize}px ${headingFont}`;
-		const nameLines = this.wrapText(ctx, this.name, rightWidth - 48).slice(0, 2);
+		const nameLines = this.wrapText(ctx, this.name, rightWidth - 48).slice(
+			0,
+			2,
+		);
 		let nameY = 116;
 		for (const line of nameLines) {
 			ctx.fillText(line, rightX + 22, nameY);
@@ -1166,8 +1232,28 @@ export class RankCard {
 		const statsY = 152;
 		const statWidth = 132;
 		const statGap = 14;
-		this.drawStatCard(ctx, rightX + 22, statsY, statWidth, 76, "LEVEL", `${this.level}`, accentColor, themeConfig);
-		this.drawStatCard(ctx, rightX + 22 + statWidth + statGap, statsY, statWidth, 76, "CURRENT XP", `${this.xp}`, accentColor, themeConfig);
+		this.drawStatCard(
+			ctx,
+			rightX + 22,
+			statsY,
+			statWidth,
+			76,
+			"LEVEL",
+			`${this.level}`,
+			accentColor,
+			themeConfig,
+		);
+		this.drawStatCard(
+			ctx,
+			rightX + 22 + statWidth + statGap,
+			statsY,
+			statWidth,
+			76,
+			"CURRENT XP",
+			`${this.xp}`,
+			accentColor,
+			themeConfig,
+		);
 		this.drawStatCard(
 			ctx,
 			rightX + 22 + (statWidth + statGap) * 2,
@@ -1183,23 +1269,47 @@ export class RankCard {
 		const progressX = rightX + 22;
 		const progressY = 258;
 		const progressWidth = rightWidth - 44;
-		ctx.fillStyle = this.adjustColorAlpha(themeConfig.textColor || "#fff", 0.72);
+		ctx.fillStyle = this.adjustColorAlpha(
+			themeConfig.textColor || "#fff",
+			0.72,
+		);
 		ctx.font = `700 13px ${headingFont}`;
 		ctx.fillText("LEVEL PROGRESS", progressX, progressY - 16);
 		ctx.textAlign = "right";
-		ctx.fillText(`${Math.round(progressValue * 100)}%`, progressX + progressWidth, progressY - 16);
+		ctx.fillText(
+			`${Math.round(progressValue * 100)}%`,
+			progressX + progressWidth,
+			progressY - 16,
+		);
 		ctx.textAlign = "left";
 
-		this.drawModernProgressBar(ctx, progressValue, progressX, progressY, progressWidth, 24, accentColor, themeConfig);
+		this.drawModernProgressBar(
+			ctx,
+			progressValue,
+			progressX,
+			progressY,
+			progressWidth,
+			24,
+			accentColor,
+			themeConfig,
+		);
 
-		ctx.fillStyle = this.adjustColorAlpha(themeConfig.textColor || "#fff", 0.72);
+		ctx.fillStyle = this.adjustColorAlpha(
+			themeConfig.textColor || "#fff",
+			0.72,
+		);
 		ctx.font = `600 14px ${headingFont}`;
 		ctx.fillText(`${this.xp} / ${this.maxXp} XP`, progressX, progressY + 48);
 
 		if (this.showNextLevelXp) {
-			const nextLevelValue = this.nextLevelXp !== undefined ? this.nextLevelXp : this.maxXp;
+			const nextLevelValue =
+				this.nextLevelXp !== undefined ? this.nextLevelXp : this.maxXp;
 			ctx.textAlign = "right";
-			ctx.fillText(`Next Level: ${nextLevelValue} XP`, progressX + progressWidth, progressY + 48);
+			ctx.fillText(
+				`Next Level: ${nextLevelValue} XP`,
+				progressX + progressWidth,
+				progressY + 48,
+			);
 			ctx.textAlign = "left";
 		}
 
@@ -1266,7 +1376,11 @@ export class RankCard {
 		ctx.shadowBlur = 0;
 	}
 
-	private drawHexagonalAvatar(
+	/**
+	 * Dead code kept intentionally for future level-card variants.
+	 * It may be reused later or removed once the layout direction settles.
+	 */
+	private _drawHexagonalAvatar(
 		ctx: any,
 		x: number,
 		y: number,
@@ -1340,7 +1454,11 @@ export class RankCard {
 		ctx.stroke();
 	}
 
-	private drawAvatarHUDElements(
+	/**
+	 * Dead code kept intentionally for future level-card variants.
+	 * It may be reused later or removed once the layout direction settles.
+	 */
+	private _drawAvatarHUDElements(
 		ctx: any,
 		x: number,
 		y: number,
@@ -1396,7 +1514,11 @@ export class RankCard {
 		}
 	}
 
-	private drawAngledHeader(
+	/**
+	 * Dead code kept intentionally for future level-card variants.
+	 * It may be reused later or removed once the layout direction settles.
+	 */
+	private _drawAngledHeader(
 		ctx: any,
 		x: number,
 		y: number,
@@ -1445,7 +1567,11 @@ export class RankCard {
 		ctx.fill();
 	}
 
-	private drawHexLevelBadge(
+	/**
+	 * Dead code kept intentionally for future level-card variants.
+	 * It may be reused later or removed once the layout direction settles.
+	 */
+	private _drawHexLevelBadge(
 		ctx: any,
 		x: number,
 		y: number,
@@ -1503,7 +1629,11 @@ export class RankCard {
 		ctx.fillText("LVL", x + size + 5, y + hexRadius);
 	}
 
-	private drawFuturisticStats(
+	/**
+	 * Dead code kept intentionally for future level-card variants.
+	 * It may be reused later or removed once the layout direction settles.
+	 */
+	private _drawFuturisticStats(
 		ctx: any,
 		x: number,
 		y: number,
@@ -1573,7 +1703,11 @@ export class RankCard {
 		}
 	}
 
-	private drawHexProgressBar(
+	/**
+	 * Dead code kept intentionally for future level-card variants.
+	 * It may be reused later or removed once the layout direction settles.
+	 */
+	private _drawHexProgressBar(
 		ctx: any,
 		x: number,
 		y: number,
@@ -1707,6 +1841,20 @@ export class RankCard {
 			ctx.fillRect(startX, barY, progress * segments * segmentWidth, barHeight);
 			ctx.globalCompositeOperation = "source-over";
 		}
+	}
+
+	/**
+	 * Dead-code retention hook for helper variants parked for future reuse.
+	 */
+	private retainDeadCodeReferences(): void {
+		void this._drawText;
+		void this._drawProgressBar;
+		void this._drawHexagonalAvatar;
+		void this._drawAvatarHUDElements;
+		void this._drawAngledHeader;
+		void this._drawHexLevelBadge;
+		void this._drawFuturisticStats;
+		void this._drawHexProgressBar;
 	}
 
 	private drawDataLines(

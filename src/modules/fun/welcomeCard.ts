@@ -194,7 +194,14 @@ export const welcomeCard = async (
 			}
 
 			drawAmbientGlow(ctx, 130, 80, 220, accentColor, 0.26);
-			drawAmbientGlow(ctx, width - 120, height - 70, 260, themeConfig.borderColor, 0.18);
+			drawAmbientGlow(
+				ctx,
+				width - 120,
+				height - 70,
+				260,
+				themeConfig.borderColor,
+				0.18,
+			);
 
 			const shellX = 24;
 			const shellY = 24;
@@ -202,7 +209,12 @@ export const welcomeCard = async (
 			const shellHeight = height - shellY * 2;
 			const shellRadius = 28;
 
-			const shellGradient = ctx.createLinearGradient(shellX, shellY, width, height);
+			const shellGradient = ctx.createLinearGradient(
+				shellX,
+				shellY,
+				width,
+				height,
+			);
 			shellGradient.addColorStop(
 				0,
 				addAlpha(themeConfig.backgroundColor, isLightTheme ? 0.96 : 0.88),
@@ -241,9 +253,23 @@ export const welcomeCard = async (
 					? "rgba(255, 255, 255, 0.92)"
 					: "rgba(255, 255, 255, 0.72)"
 				: "rgba(255, 255, 255, 0.045)";
-			roundedRect(ctx, leftPanelX, leftPanelY, leftPanelWidth, leftPanelHeight, 22);
+			roundedRect(
+				ctx,
+				leftPanelX,
+				leftPanelY,
+				leftPanelWidth,
+				leftPanelHeight,
+				22,
+			);
 			ctx.fill();
-			roundedRect(ctx, rightPanelX, rightPanelY, rightPanelWidth, rightPanelHeight, 22);
+			roundedRect(
+				ctx,
+				rightPanelX,
+				rightPanelY,
+				rightPanelWidth,
+				rightPanelHeight,
+				22,
+			);
 			ctx.fill();
 
 			const avatar = await loadImage(avatarBuffer);
@@ -251,7 +277,14 @@ export const welcomeCard = async (
 			const avatarX = leftPanelX + leftPanelWidth / 2;
 			const avatarY = 132;
 
-			drawAmbientGlow(ctx, avatarX, avatarY, 90, themeConfig.avatarBorderColor, 0.35);
+			drawAmbientGlow(
+				ctx,
+				avatarX,
+				avatarY,
+				90,
+				themeConfig.avatarBorderColor,
+				0.35,
+			);
 			ctx.save();
 			ctx.beginPath();
 			ctx.arc(avatarX, avatarY, avatarSize / 2 + 10, 0, Math.PI * 2);
@@ -294,7 +327,15 @@ export const welcomeCard = async (
 			ctx.fillText(`@${truncateText(options.username, 14)}`, avatarX, 252);
 
 			const headerY = 84;
-			drawPill(ctx, rightPanelX + 20, headerY - 26, 134, 30, addAlpha(themeConfig.borderColor, 0.18), addAlpha(themeConfig.borderColor, 0.35));
+			drawPill(
+				ctx,
+				rightPanelX + 20,
+				headerY - 26,
+				134,
+				30,
+				addAlpha(themeConfig.borderColor, 0.18),
+				addAlpha(themeConfig.borderColor, 0.35),
+			);
 			ctx.textAlign = "center";
 			ctx.font = `700 14px ${themeConfig.font}`;
 			ctx.fillStyle = addAlpha(themeConfig.textColor, 0.88);
@@ -344,7 +385,9 @@ export const welcomeCard = async (
 				const gap = 14;
 				const availableWidth = rightPanelWidth - 40;
 				const totalGap = gap * (metaItems.length - 1);
-				const badgeWidth = Math.floor((availableWidth - totalGap) / metaItems.length);
+				const badgeWidth = Math.floor(
+					(availableWidth - totalGap) / metaItems.length,
+				);
 
 				metaItems.forEach((item, index) => {
 					drawInfoBadge(
@@ -468,11 +511,17 @@ function roundedRect(
 
 function addAlpha(color: string, alpha: number): string {
 	if (color.startsWith("rgba(")) {
-		return color.replace(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/, `rgba($1, $2, $3, ${alpha})`);
+		return color.replace(
+			/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/,
+			`rgba($1, $2, $3, ${alpha})`,
+		);
 	}
 
 	if (color.startsWith("rgb(")) {
-		return color.replace(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/, `rgba($1, $2, $3, ${alpha})`);
+		return color.replace(
+			/rgb\((\d+),\s*(\d+),\s*(\d+)\)/,
+			`rgba($1, $2, $3, ${alpha})`,
+		);
 	}
 
 	if (color.startsWith("#")) {
@@ -584,7 +633,10 @@ function wrapText(
 		if (index !== array.length - 1) return line;
 		if (ctx.measureText(line).width <= maxWidth) return line;
 		let trimmed = line;
-		while (trimmed.length > 1 && ctx.measureText(`${trimmed}…`).width > maxWidth) {
+		while (
+			trimmed.length > 1 &&
+			ctx.measureText(`${trimmed}…`).width > maxWidth
+		) {
 			trimmed = trimmed.slice(0, -1);
 		}
 		return `${trimmed}…`;
@@ -648,7 +700,9 @@ function drawInfoBadge(
 	ctx.fillText(fittedValue, x + 14, y + 35);
 }
 
-function drawMetaLine(
+// Dead code kept intentionally for future welcome-card layout experiments.
+// It may be reused later or removed once the layout direction settles.
+function _drawMetaLine(
 	ctx: NodeCanvasRenderingContext2D,
 	x: number,
 	y: number,
@@ -713,7 +767,10 @@ function fitTextWithSize(
 	const fallbackSize = minSize;
 	ctx.font = `${bold ? "700" : "400"} ${fallbackSize}px ${font}`;
 	let trimmed = text;
-	while (trimmed.length > 1 && ctx.measureText(`${trimmed}…`).width > maxWidth) {
+	while (
+		trimmed.length > 1 &&
+		ctx.measureText(`${trimmed}…`).width > maxWidth
+	) {
 		trimmed = trimmed.slice(0, -1);
 	}
 	return { text: `${trimmed}…`, size: fallbackSize };

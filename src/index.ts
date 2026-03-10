@@ -22,7 +22,6 @@ import {
 	WelcomeTheme,
 	welcomeCard,
 } from "./modules/fun/welcomeCard";
-import type { WelcomeCardMetaItem } from "./modules/fun/welcomeCard";
 // gifs
 import { blink } from "./modules/gif/blink";
 import { triggered } from "./modules/gif/triggered";
@@ -136,6 +135,8 @@ export {
 	assertAssets,
 	getRegisteredAssets,
 };
+
+export type { WelcomeCardMetaItem } from "./modules/fun/welcomeCard";
 
 // Export level as RankCard
 export { level as RankCard };
