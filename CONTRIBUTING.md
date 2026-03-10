@@ -1,6 +1,6 @@
-# Contributing to @norysight/discord-image
+# Contributing to discord-image-utils
 
-Thank you for your interest in contributing to this project! We use automated semantic versioning, so please follow these guidelines when making commits.
+Thank you for your interest in contributing to this project. Please follow these guidelines when making changes.
 
 ## Commit Message Format
 
@@ -61,4 +61,14 @@ When creating pull requests, please ensure:
 3. Your commit messages follow the conventional commits format
 4. You've updated documentation if necessary
 
-This project uses semantic-release for automated versioning and publishing. Proper commit messages ensure correct version bumps and automated changelog generation. 
+## Local Checks
+
+Before opening a PR, run the relevant checks:
+
+```bash
+pnpm run build
+pnpm run lint
+pnpm run test:gen-all
+```
+
+Use `pnpm run test:gen-all:fast` for a quicker pass or `pnpm run test:gen-all:full` when you want a build plus lower-concurrency generation run.

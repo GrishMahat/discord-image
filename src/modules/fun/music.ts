@@ -2,7 +2,26 @@
 
 import type { MusicImageOptions } from "../../types/index";
 import type { NodeCanvasRenderingContext2D } from "../../utils/canvas-compat";
-import { createCanvas, loadImage } from "../../utils/canvas-compat";
+import {
+	createCanvas,
+	loadImage,
+	registerFont,
+} from "../../utils/canvas-compat";
+import { getAssetPath } from "../../utils/paths";
+
+const MUSIC_FONT_FAMILY = "DiscordImageNoto";
+const MUSIC_SYMBOL_FONT_FAMILY = "DiscordImageEmoji";
+
+try {
+	registerFont(getAssetPath("fonts/Noto-Regular.ttf"), {
+		family: MUSIC_FONT_FAMILY,
+	});
+	registerFont(getAssetPath("fonts/Noto-Emoji.ttf"), {
+		family: MUSIC_SYMBOL_FONT_FAMILY,
+	});
+} catch (_error) {
+	// Fall back to generic fonts if registration fails.
+}
 
 /**
  * Generates random time values for the music player if not provided
@@ -344,7 +363,7 @@ export async function Music(options: MusicImageOptions): Promise<Buffer> {
 
 		// Draw title with enhanced typography
 		ctx.save();
-		ctx.font = "bold 52px 'Arial'";
+		ctx.font = `bold 52px '${MUSIC_FONT_FAMILY}'`;
 		ctx.fillStyle = "#ffffff";
 		ctx.shadowColor = "rgba(255, 255, 255, 0.8)";
 		ctx.shadowBlur = 25;
@@ -373,7 +392,7 @@ export async function Music(options: MusicImageOptions): Promise<Buffer> {
 
 		// Draw artist with enhanced style
 		ctx.save();
-		ctx.font = "36px 'Arial'";
+		ctx.font = `36px '${MUSIC_FONT_FAMILY}'`;
 		ctx.fillStyle = "#e0e0e0";
 		ctx.shadowColor = "rgba(255, 255, 255, 0.4)";
 		ctx.shadowBlur = 12;
@@ -453,7 +472,7 @@ export async function Music(options: MusicImageOptions): Promise<Buffer> {
 
 		// Draw enhanced time stamps
 		ctx.save();
-		ctx.font = "bold 24px 'Arial'";
+		ctx.font = `bold 24px '${MUSIC_FONT_FAMILY}'`;
 		ctx.fillStyle = "#e0e0e0";
 		ctx.shadowColor = "rgba(0, 0, 0, 0.6)";
 		ctx.shadowBlur = 10;
@@ -570,7 +589,9 @@ function drawControl(
 	}
 
 	// Draw symbol with enhanced style
-	ctx.font = isMain ? "bold 48px 'Arial'" : "36px 'Arial'";
+	ctx.font = isMain
+		? `48px '${MUSIC_SYMBOL_FONT_FAMILY}'`
+		: `36px '${MUSIC_SYMBOL_FONT_FAMILY}'`;
 	ctx.fillStyle = isMain ? "#ffffff" : "#e0e0e0";
 	ctx.textAlign = "center";
 	ctx.textBaseline = "middle";

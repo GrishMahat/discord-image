@@ -103,6 +103,9 @@
     "clean": "rm -rf dist",
     "lint": "biome check src",
     "format": "biome format --write src",
+    "test:gen-all": "node scripts/generate-all.js",
+    "test:gen-all:full": "pnpm run build && node scripts/generate-all.js --concurrency=2",
+    "test:gen-all:fast": "node scripts/generate-all.js --concurrency=4",
     "prepublishOnly": "pnpm run build",
     "release": "npm version patch && npm publish",
     "release:minor": "npm version minor && npm publish",
@@ -110,14 +113,12 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.8",
-    "@types/gifencoder": "2.0.3",
     "@types/node": "^20.0.0",
-    "canvas": "^3.1.2",
     "typescript": "5.8.2"
   },
   "dependencies": {
     "@napi-rs/canvas": "^0.1.56",
-    "gifencoder": "2.0.1",
+    "gifenc": "^1.0.3",
     "jimp": "1.6.0"
   },
   "engines": {

@@ -1,9 +1,9 @@
 /** @format */
 
 import { Jimp } from "jimp";
+import type { ImageInput } from "../types";
+import { ErrorHandler, ImageProcessingError, ValidationError } from "./errors";
 import { validateURL } from "./utils";
-
-type ImageInput = string | Buffer;
 
 export default class Denoise {
 	/**
@@ -14,27 +14,43 @@ export default class Denoise {
 	 * @throws Will throw an error if the image is invalid or if level is out of range.
 	 */
 	async getImage(image: ImageInput, level: number = 5): Promise<Buffer> {
-		if (!image) {
-			throw new Error("You must provide an image as the first argument.");
-		}
+		return ErrorHandler.withErrorHandling(async () => {
+			ErrorHandler.validateRequired(image, "image");
+			ErrorHandler.validateRange(level, 1, 10, "denoise level");
 
-		const isValid = await validateURL(image);
-		if (!isValid) {
-			throw new Error("You must provide a valid image URL or buffer.");
-		}
+			const imageBuffer = await validateURL(image);
+			if (!imageBuffer) {
+				throw new ValidationError("Failed to load image", "image", image);
+			}
 
-		if (level < 1 || level > 10) {
-			throw new Error("Level must be between 1 and 10.");
-		}
+			try {
+				const jimpImage = await Jimp.read(imageBuffer);
+				jimpImage.gaussian(level);
 
-		try {
-			const jimpImage = await Jimp.read(image);
-			jimpImage.gaussian(level);
+				const buffer = await jimpImage.getBuffer("image/png");
+				if (!buffer || buffer.length === 0) {
+					throw new ImageProcessingError(
+						"Generated image buffer is empty",
+						"denoise export",
+					);
+				}
 
-			const buffer = await jimpImage.getBuffer("image/png");
-			return buffer;
-		} catch (error) {
-			throw new Error(`Failed to process the image: ${error}`);
-		}
+				return buffer;
+			} catch (error) {
+				if (error instanceof ImageProcessingError) {
+					throw error;
+				}
+
+				if (error instanceof Error) {
+					throw new ImageProcessingError(
+						`Failed to denoise image: ${error.message}`,
+						"denoise",
+						{ level },
+					);
+				}
+
+				throw error;
+			}
+		}, "denoise utility");
 	}
 }

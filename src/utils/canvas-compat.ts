@@ -1,5 +1,8 @@
 /** @format */
 
+import { readFileSync } from "node:fs";
+import { templateCache } from "./image-cache";
+
 /**
  * Canvas compatibility layer
  * Supports both node-canvas and @napi-rs/canvas for better Node.js compatibility
@@ -9,52 +12,51 @@ let canvasImpl: any;
 let Canvas: any;
 let CanvasRenderingContext2D: any;
 let Image: any;
-let loadImage: any;
+let loadImageImpl: any;
 let createCanvas: any;
-let registerFont: any;
+let registerFontImpl: any;
 let Path2D: any;
+
+function dynamicRequire(moduleName: string): any {
+	// biome-ignore lint/security/noGlobalEval: Dynamic require for optional dependencies
+	return eval("require")(moduleName);
+}
 
 try {
 	// Try @napi-rs/canvas first (better Node.js v24+ support)
-	// biome-ignore lint/security/noGlobalEval: Dynamic require for compatibility
-	canvasImpl = eval("require")("@napi-rs/canvas");
+	canvasImpl = dynamicRequire("@napi-rs/canvas");
 	Canvas = canvasImpl.Canvas;
 	CanvasRenderingContext2D = canvasImpl.CanvasRenderingContext2D;
 	Image = canvasImpl.Image;
-	loadImage = canvasImpl.loadImage;
+	loadImageImpl = canvasImpl.loadImage;
 	createCanvas = canvasImpl.createCanvas;
 	Path2D = canvasImpl.Path2D;
-	// Wrapper for font registration to handle differences between libraries
-	registerFont = (path: string, options?: { family: string }) => {
+
+	registerFontImpl = (path: string, options?: { family: string }) => {
 		if (canvasImpl.GlobalFonts?.registerFromPath) {
-			// @napi-rs/canvas: registerFromPath(path, alias?)
 			canvasImpl.GlobalFonts.registerFromPath(path, options?.family);
-		} else if (canvasImpl.registerFont) {
-			// node-canvas: registerFont(path, options)
+			return;
+		}
+		if (canvasImpl.registerFont) {
 			canvasImpl.registerFont(path, options);
 		}
 	};
-
-	// @napi-rs/canvas loaded successfully
 } catch (napiError: any) {
 	try {
 		// Fallback to node-canvas
-		// biome-ignore lint/security/noGlobalEval: Dynamic require for compatibility
-		canvasImpl = eval("require")("canvas");
+		canvasImpl = dynamicRequire("canvas");
 		Canvas = canvasImpl.Canvas;
 		CanvasRenderingContext2D = canvasImpl.CanvasRenderingContext2D;
 		Image = canvasImpl.Image;
-		loadImage = canvasImpl.loadImage;
+		loadImageImpl = canvasImpl.loadImage;
 		createCanvas = canvasImpl.createCanvas;
-		// node-canvas might not export Path2D directly in all versions, but usually it does
 		Path2D = canvasImpl.Path2D || class {};
-		registerFont = (path: string, options?: { family: string }) => {
+
+		registerFontImpl = (path: string, options?: { family: string }) => {
 			if (canvasImpl.registerFont) {
 				canvasImpl.registerFont(path, options);
 			}
 		};
-
-		// node-canvas loaded as fallback
 	} catch (canvasError: any) {
 		throw new Error(
 			"No canvas implementation found. Please install either @napi-rs/canvas or canvas:\n" +
@@ -67,7 +69,16 @@ try {
 	}
 }
 
-// Check if something is Buffer-like
+if (typeof createCanvas !== "function") {
+	throw new Error("Canvas createCanvas function is unavailable");
+}
+
+if (typeof registerFontImpl !== "function") {
+	registerFontImpl = () => {
+		// no-op if current backend does not support font registration
+	};
+}
+
 function isBufferLike(obj: any): boolean {
 	return (
 		obj &&
@@ -77,38 +88,55 @@ function isBufferLike(obj: any): boolean {
 	);
 }
 
+function normalizeImageSource(source: any): any {
+	if (isBufferLike(source)) {
+		return source;
+	}
+
+	if (typeof source === "string") {
+		if (
+			source.startsWith("data:") ||
+			source.startsWith("http://") ||
+			source.startsWith("https://")
+		) {
+			return source;
+		}
+		const cacheKey = `canvas:path:${source}`;
+		const cached = templateCache.get(cacheKey);
+		if (cached && Buffer.isBuffer(cached)) {
+			return cached;
+		}
+
+		const fileBuffer = readFileSync(source);
+		templateCache.set(cacheKey, fileBuffer);
+		return fileBuffer;
+	}
+
+	return source;
+}
+
 // Compatibility wrapper for loadImage to handle different signatures
 const compatLoadImage = async (source: any): Promise<any> => {
 	try {
-		if (typeof loadImage === "function") {
-			return await loadImage(source);
+		const normalizedSource = normalizeImageSource(source);
+
+		if (typeof loadImageImpl === "function") {
+			return await loadImageImpl(normalizedSource);
 		}
 
-		// Fallback implementation for different canvas libraries
 		const img = new Image();
-		return new Promise((resolve, reject) => {
+		return await new Promise((resolve, reject) => {
 			img.onload = () => resolve(img);
 			img.onerror = reject;
-
-			if (isBufferLike(source)) {
-				img.src = source;
-			} else if (typeof source === "string") {
-				if (source.startsWith("data:") || source.startsWith("http")) {
-					img.src = source;
-				} else {
-					// Assume it's a file path
-					// biome-ignore lint/security/noGlobalEval: Dynamic require for compatibility
-					const fs = eval("require")("fs");
-					const data = fs.readFileSync(source);
-					img.src = data;
-				}
-			} else {
-				img.src = source;
-			}
+			img.src = normalizedSource;
 		});
 	} catch (error: any) {
 		throw new Error(`Failed to load image: ${error?.message || String(error)}`);
 	}
+};
+
+const registerFont = (path: string, options?: { family: string }): void => {
+	registerFontImpl(path, options);
 };
 
 // Export compatible interface

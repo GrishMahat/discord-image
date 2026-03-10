@@ -5,6 +5,11 @@ import {
 	loadImage,
 	registerFont,
 } from "../../utils/canvas-compat";
+import {
+	ErrorHandler,
+	ImageProcessingError,
+	ValidationError,
+} from "../../utils/errors";
 import { getAssetPath } from "../../utils/paths";
 import { wrapText } from "../../utils/utils";
 
@@ -40,61 +45,78 @@ export async function drake(
 	text2: string,
 	options: DrakeOptions = {},
 ): Promise<Buffer> {
-	if (!text1?.trim() || !text2?.trim()) {
-		throw new Error("Both text arguments are required");
-	}
-
-	const settings = { ...DEFAULT_OPTIONS, ...options };
-
-	try {
-		// Load template and setup canvas
-		const base = await loadImage(getAssetPath("drake.jpeg"));
-		const canvas = createCanvas(800, 800);
-		const ctx = canvas.getContext("2d");
-
-		// Draw template
-		ctx.drawImage(base, 0, 0, 800, 800);
-
-		// Configure text
-		ctx.textAlign = "center";
-		ctx.textBaseline = "middle";
-		ctx.font = `${settings.bold ? "bold" : ""} ${
-			settings.fontSize
-		}px Noto`.trim();
-		ctx.fillStyle = settings.textColor;
-
-		// Draw text
-		const textX = 575;
-		const maxWidth = 350;
-
-		const [lines1, lines2] = await Promise.all([
-			wrapText(ctx, text1, maxWidth),
-			wrapText(ctx, text2, maxWidth),
-		]);
-
-		if (!lines1 || !lines2) {
-			throw new Error("Failed to wrap text");
+	return ErrorHandler.withErrorHandling(async () => {
+		if (!text1?.trim() || !text2?.trim()) {
+			throw new ValidationError("Both text arguments are required", "text");
 		}
 
-		// Draw top panel text with stroke for visibility
-		ctx.strokeStyle = "#FFFFFF";
-		ctx.lineWidth = 3;
-		ctx.lineJoin = "round";
-		lines1.forEach((line, i) => {
-			ctx.strokeText(line, textX, 200 + i * 45);
-			ctx.fillText(line, textX, 200 + i * 45);
-		});
+		const settings = { ...DEFAULT_OPTIONS, ...options };
 
-		// Draw bottom panel text with stroke
-		lines2.forEach((line, i) => {
-			ctx.strokeText(line, textX, 600 + i * 45);
-			ctx.fillText(line, textX, 600 + i * 45);
-		});
+		try {
+			const base = await loadImage(getAssetPath("drake.jpeg"));
+			const canvas = createCanvas(800, 800);
+			const ctx = canvas.getContext("2d");
 
-		return canvas.toBuffer("image/png");
-	} catch (error) {
-		throw new Error(`Failed to create meme: ${error}`);
-	}
+			ctx.drawImage(base, 0, 0, 800, 800);
+			ctx.textAlign = "center";
+			ctx.textBaseline = "middle";
+			ctx.font = `${settings.bold ? "bold" : ""} ${
+				settings.fontSize
+			}px Noto`.trim();
+			ctx.fillStyle = settings.textColor;
+
+			const textX = 575;
+			const maxWidth = 350;
+			const [lines1, lines2] = await Promise.all([
+				wrapText(ctx, text1, maxWidth),
+				wrapText(ctx, text2, maxWidth),
+			]);
+
+			if (!lines1 || !lines2) {
+				throw new ValidationError("Failed to wrap text", "text", {
+					text1Length: text1.length,
+					text2Length: text2.length,
+				});
+			}
+
+			ctx.strokeStyle = "#FFFFFF";
+			ctx.lineWidth = 3;
+			ctx.lineJoin = "round";
+			lines1.forEach((line, i) => {
+				ctx.strokeText(line, textX, 200 + i * 45);
+				ctx.fillText(line, textX, 200 + i * 45);
+			});
+
+			lines2.forEach((line, i) => {
+				ctx.strokeText(line, textX, 600 + i * 45);
+				ctx.fillText(line, textX, 600 + i * 45);
+			});
+
+			const buffer = canvas.toBuffer("image/png");
+			if (!buffer || buffer.length === 0) {
+				throw new ImageProcessingError(
+					"Generated image buffer is empty",
+					"drake export",
+				);
+			}
+
+			return buffer;
+		} catch (error) {
+			if (
+				error instanceof ValidationError ||
+				error instanceof ImageProcessingError
+			) {
+				throw error;
+			}
+			if (error instanceof Error) {
+				throw new ImageProcessingError(
+					`Failed to create drake meme: ${error.message}`,
+					"drake",
+				);
+			}
+			throw error;
+		}
+	}, "drake generator");
 }
 
 // Example usage:

@@ -7,7 +7,12 @@ import { getAssetPath } from "./paths";
 /**
  * Asset manifest - all template files that must exist
  */
-const REQUIRED_ASSETS = [
+type AssetRequirement = {
+	file: string;
+	minBytes: number;
+};
+
+const REQUIRED_ASSETS: readonly AssetRequirement[] = [
 	// Meme templates
 	{ file: "drake.jpeg", minBytes: 10000 },
 	{ file: "wanted.png", minBytes: 5000 },
@@ -39,7 +44,8 @@ const REQUIRED_ASSETS = [
 	{ file: "gay.png", minBytes: 1000 },
 	// Fonts
 	{ file: "fonts/Noto-Regular.ttf", minBytes: 10000 },
-] as const;
+	{ file: "fonts/Noto-Emoji.ttf", minBytes: 10000 },
+];
 
 /**
  * Valid image extensions for templates
@@ -47,12 +53,19 @@ const REQUIRED_ASSETS = [
 const VALID_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".gif"]);
 const VALID_FONT_EXTENSIONS = new Set([".ttf", ".otf", ".woff", ".woff2"]);
 
-interface AssetValidationError {
+export interface AssetValidationError {
 	file: string;
 	error: string;
+	code:
+		| "DUPLICATE_ENTRY"
+		| "MISSING_FILE"
+		| "INVALID_EXTENSION"
+		| "NOT_A_FILE"
+		| "FILE_TOO_SMALL"
+		| "STAT_ERROR";
 }
 
-interface AssetValidationResult {
+export interface AssetValidationResult {
 	valid: boolean;
 	errors: AssetValidationError[];
 	validated: number;
@@ -64,8 +77,19 @@ interface AssetValidationResult {
  */
 export function validateAssets(): AssetValidationResult {
 	const errors: AssetValidationError[] = [];
+	const seen = new Set<string>();
 
 	for (const asset of REQUIRED_ASSETS) {
+		if (seen.has(asset.file)) {
+			errors.push({
+				file: asset.file,
+				error: `Duplicate asset entry in manifest`,
+				code: "DUPLICATE_ENTRY",
+			});
+			continue;
+		}
+		seen.add(asset.file);
+
 		const assetPath = getAssetPath(asset.file);
 		const ext = extname(asset.file).toLowerCase();
 
@@ -74,6 +98,7 @@ export function validateAssets(): AssetValidationResult {
 			errors.push({
 				file: asset.file,
 				error: `Missing asset: ${assetPath}`,
+				code: "MISSING_FILE",
 			});
 			continue;
 		}
@@ -85,26 +110,43 @@ export function validateAssets(): AssetValidationResult {
 			errors.push({
 				file: asset.file,
 				error: `Invalid extension ${ext}. Expected: ${[...validExtensions].join(", ")}`,
+				code: "INVALID_EXTENSION",
 			});
 			continue;
 		}
 
-		// Check file size
+		// Check file type and size
 		try {
 			const stats = statSync(assetPath);
+			if (!stats.isFile()) {
+				errors.push({
+					file: asset.file,
+					error: `Path is not a regular file`,
+					code: "NOT_A_FILE",
+				});
+				continue;
+			}
+
 			if (stats.size < asset.minBytes) {
 				errors.push({
 					file: asset.file,
 					error: `File too small: ${stats.size} bytes (min: ${asset.minBytes})`,
+					code: "FILE_TOO_SMALL",
 				});
 			}
 		} catch {
 			errors.push({
 				file: asset.file,
 				error: `Cannot read file stats`,
+				code: "STAT_ERROR",
 			});
 		}
 	}
+
+	errors.sort((a, b) => {
+		if (a.file === b.file) return a.code.localeCompare(b.code);
+		return a.file.localeCompare(b.file);
+	});
 
 	return {
 		valid: errors.length === 0,

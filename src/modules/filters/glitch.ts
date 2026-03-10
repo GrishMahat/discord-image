@@ -66,7 +66,27 @@ export const glitch = async (
 		}
 
 		try {
-			const jimpImage = await Jimp.read(imageBuffer);
+			const originalImage = await Jimp.read(imageBuffer);
+			const originalWidth = originalImage.bitmap.width;
+			const originalHeight = originalImage.bitmap.height;
+			const originalPixels = originalWidth * originalHeight;
+
+			// Process very large images at a reduced internal resolution for speed,
+			// then scale back up. This keeps the glitch look while reducing runtime.
+			const maxProcessingPixels = 300_000;
+			const scale =
+				originalPixels > maxProcessingPixels
+					? Math.min(2.5, Math.sqrt(originalPixels / maxProcessingPixels))
+					: 1;
+
+			let jimpImage = originalImage;
+			if (scale > 1) {
+				jimpImage = originalImage.clone() as any;
+				jimpImage = jimpImage.resize({
+					w: Math.max(64, Math.round(originalWidth / scale)),
+					h: Math.max(64, Math.round(originalHeight / scale)),
+				}) as any;
+			}
 
 			// Scale intensity to practical values
 			const rgbOffset = Math.floor((intensity / 10) * 15);
@@ -153,6 +173,13 @@ export const glitch = async (
 					);
 					jimpImage.setPixelColor(newColor, x, y);
 				}
+			}
+
+			if (scale > 1) {
+				jimpImage = jimpImage.resize({
+					w: originalWidth,
+					h: originalHeight,
+				}) as any;
 			}
 
 			const buffer = await jimpImage.getBuffer("image/png");

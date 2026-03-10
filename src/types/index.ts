@@ -76,6 +76,126 @@ export interface QuoteResponse {
 	pattern?: PatternOptions;
 }
 
+// Gradient generator types
+export type GradientGeneratorMode = "mesh" | "blob" | "aurora";
+export type GradientGeneratorOutput = "static" | "animated";
+export type GradientGeneratorPreset =
+	| "calm-mesh"
+	| "aurora-night"
+	| "vivid-blob"
+	| "storm-screen";
+export type GradientGeneratorIntensity = "calm" | "balanced" | "vivid";
+export type GradientGeneratorSpeed = "still" | "slow" | "medium";
+export type GradientGeneratorDirection =
+	| "horizontal"
+	| "vertical"
+	| "diagonal"
+	| "radial";
+export type GradientGeneratorTexture =
+	| "none"
+	| "grain"
+	| "particles"
+	| "lightning"
+	| "scanlines";
+export type GradientGeneratorBlendMode =
+	| "normal"
+	| "screen"
+	| "overlay"
+	| "soft-light";
+
+export interface GradientGeneratorPaletteOptions {
+	preset?: string;
+	colors?: Color[];
+	accentColor?: Color;
+	backgroundColor?: Color;
+}
+
+export interface GradientGeneratorMotionOptions extends AnimationOptions {
+	enabled?: boolean;
+	speed?: GradientGeneratorSpeed;
+	seamless?: boolean;
+	driftStrength?: number;
+	colorShift?: boolean;
+}
+
+export interface GradientGeneratorOverlayOptions {
+	type: GradientGeneratorTexture;
+	enabled?: boolean;
+	opacity?: number;
+	density?: number;
+	scale?: number;
+	intensity?: number;
+	speed?: number;
+	color?: Color;
+	blendMode?: GradientGeneratorBlendMode;
+}
+
+export interface GradientMeshOptions {
+	pointCount?: number;
+	wobble?: number;
+	edgeBias?: number;
+}
+
+export interface GradientBlobOptions {
+	blobCount?: number;
+	minRadius?: number;
+	maxRadius?: number;
+	blur?: number;
+}
+
+export interface GradientAuroraOptions {
+	bandCount?: number;
+	noiseStrength?: number;
+	curvature?: number;
+	glow?: number;
+}
+
+export interface GradientPostProcessingOptions {
+	noise?: number;
+	blur?: number;
+	vignette?: number;
+	brightness?: number;
+	contrast?: number;
+	saturation?: number;
+}
+
+export interface GradientGeneratorOptions {
+	width?: number;
+	height?: number;
+	mode?: GradientGeneratorMode;
+	output?: GradientGeneratorOutput;
+	preset?: GradientGeneratorPreset;
+	palette?: GradientGeneratorPaletteOptions;
+	intensity?: GradientGeneratorIntensity;
+	direction?: GradientGeneratorDirection;
+	seed?: number | string;
+	motion?: GradientGeneratorMotionOptions;
+	overlays?: GradientGeneratorOverlayOptions[];
+	mesh?: GradientMeshOptions;
+	blob?: GradientBlobOptions;
+	aurora?: GradientAuroraOptions;
+	postProcessing?: GradientPostProcessingOptions;
+}
+
+export interface StaticGradientGeneratorOptions
+	extends GradientGeneratorOptions {
+	output?: "static";
+	motion?: GradientGeneratorMotionOptions & {
+		enabled?: false;
+		speed?: "still";
+	};
+}
+
+export interface AnimatedGradientGeneratorOptions
+	extends GradientGeneratorOptions,
+		GifOptions {
+	output: "animated";
+	motion?: GradientGeneratorMotionOptions & {
+		enabled?: true;
+		speed?: Exclude<GradientGeneratorSpeed, "still">;
+	};
+}
+
 // Welcome card types
 export type WelcomeTheme =
 	| "default"

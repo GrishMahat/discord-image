@@ -1,12 +1,27 @@
 import type { ImageInput } from "../../types";
 import type { NodeCanvasRenderingContext2D } from "../../utils/canvas-compat";
-import { createCanvas, loadImage } from "../../utils/canvas-compat";
+import {
+	createCanvas,
+	loadImage,
+	registerFont,
+} from "../../utils/canvas-compat";
 import {
 	ErrorHandler,
 	ImageProcessingError,
 	ValidationError,
 } from "../../utils/errors";
+import { getAssetPath } from "../../utils/paths";
 import { validateURL } from "../../utils/utils";
+
+const WELCOME_FONT_FAMILY = "DiscordImageNoto";
+
+try {
+	registerFont(getAssetPath("fonts/Noto-Regular.ttf"), {
+		family: WELCOME_FONT_FAMILY,
+	});
+} catch (_error) {
+	// Fall back to generic fonts if registration fails.
+}
 
 export interface WelcomeCardMetaItem {
 	label: string;
@@ -49,7 +64,7 @@ const THEMES = {
 		textColor: "#FFFFFF",
 		borderColor: "#3498db",
 		avatarBorderColor: "#3498db",
-		font: "sans-serif",
+		font: WELCOME_FONT_FAMILY,
 		fontSize: 28,
 	},
 	dark: {
@@ -57,31 +72,31 @@ const THEMES = {
 		textColor: "#E0E0E0",
 		borderColor: "#7289DA",
 		avatarBorderColor: "#7289DA",
-		font: "sans-serif",
+		font: WELCOME_FONT_FAMILY,
 		fontSize: 28,
 	},
 	light: {
-		backgroundColor: "rgba(240, 240, 240, 0.8)",
-		textColor: "#333333",
-		borderColor: "#7289DA",
-		avatarBorderColor: "#7289DA",
-		font: "sans-serif",
+		backgroundColor: "rgba(246, 249, 255, 0.92)",
+		textColor: "#22314A",
+		borderColor: "#5B7CFA",
+		avatarBorderColor: "#7D9BFF",
+		font: WELCOME_FONT_FAMILY,
 		fontSize: 28,
 	},
 	colorful: {
-		backgroundColor: "rgba(41, 128, 185, 0.7)",
+		backgroundColor: "rgba(33, 50, 96, 0.84)",
 		textColor: "#FFFFFF",
-		borderColor: "#FF9800",
-		avatarBorderColor: "#FF9800",
-		font: "sans-serif",
+		borderColor: "#FF8A00",
+		avatarBorderColor: "#FF4DB8",
+		font: WELCOME_FONT_FAMILY,
 		fontSize: 28,
 	},
 	minimal: {
-		backgroundColor: "rgba(255, 255, 255, 0.8)",
-		textColor: "#333333",
-		borderColor: "#DDDDDD",
-		avatarBorderColor: "#DDDDDD",
-		font: "sans-serif",
+		backgroundColor: "rgba(255, 255, 255, 0.95)",
+		textColor: "#121826",
+		borderColor: "#D4D9E3",
+		avatarBorderColor: "#121826",
+		font: WELCOME_FONT_FAMILY,
 		fontSize: 28,
 	},
 	tech: {
@@ -89,7 +104,7 @@ const THEMES = {
 		textColor: "#00FFFF",
 		borderColor: "#00AAFF",
 		avatarBorderColor: "#00FFFF",
-		font: "monospace",
+		font: WELCOME_FONT_FAMILY,
 		fontSize: 26,
 	},
 };
@@ -156,8 +171,9 @@ export const welcomeCard = async (
 			const width = canvas.width;
 			const height = canvas.height;
 			const accentColor = themeConfig.avatarBorderColor;
+			const isLightTheme = theme === "light" || theme === "minimal";
 
-			ctx.fillStyle = "#05070c";
+			ctx.fillStyle = isLightTheme ? "#eef3fb" : "#05070c";
 			ctx.fillRect(0, 0, width, height);
 
 			if (options.background) {
@@ -187,8 +203,20 @@ export const welcomeCard = async (
 			const shellRadius = 28;
 
 			const shellGradient = ctx.createLinearGradient(shellX, shellY, width, height);
-			shellGradient.addColorStop(0, addAlpha(themeConfig.backgroundColor, 0.88));
-			shellGradient.addColorStop(1, "rgba(10, 14, 24, 0.84)");
+			shellGradient.addColorStop(
+				0,
+				addAlpha(themeConfig.backgroundColor, isLightTheme ? 0.96 : 0.88),
+			);
+			shellGradient.addColorStop(
+				1,
+				theme === "colorful"
+					? "rgba(32, 20, 58, 0.84)"
+					: isLightTheme
+						? theme === "minimal"
+							? "rgba(248, 250, 252, 0.98)"
+							: "rgba(229, 238, 255, 0.96)"
+						: "rgba(10, 14, 24, 0.84)",
+			);
 			ctx.fillStyle = shellGradient;
 			roundedRect(ctx, shellX, shellY, shellWidth, shellHeight, shellRadius);
 			ctx.fill();
@@ -208,7 +236,11 @@ export const welcomeCard = async (
 			const rightPanelWidth = width - rightPanelX - 42;
 			const rightPanelHeight = shellHeight - 36;
 
-			ctx.fillStyle = "rgba(255, 255, 255, 0.045)";
+			ctx.fillStyle = isLightTheme
+				? theme === "minimal"
+					? "rgba(255, 255, 255, 0.92)"
+					: "rgba(255, 255, 255, 0.72)"
+				: "rgba(255, 255, 255, 0.045)";
 			roundedRect(ctx, leftPanelX, leftPanelY, leftPanelWidth, leftPanelHeight, 22);
 			ctx.fill();
 			roundedRect(ctx, rightPanelX, rightPanelY, rightPanelWidth, rightPanelHeight, 22);
@@ -270,8 +302,7 @@ export const welcomeCard = async (
 
 			ctx.textAlign = "left";
 			ctx.fillStyle = themeConfig.textColor;
-			ctx.font = `700 ${themeConfig.fontSize + 10}px ${themeConfig.font}`;
-			const title = fitText(
+			const fittedTitle = fitTextWithSize(
 				ctx,
 				options.username,
 				rightPanelWidth - 42,
@@ -280,7 +311,8 @@ export const welcomeCard = async (
 				24,
 				true,
 			);
-			ctx.fillText(title, rightPanelX + 20, headerY + 36);
+			ctx.font = `700 ${fittedTitle.size}px ${themeConfig.font}`;
+			ctx.fillText(fittedTitle.text, rightPanelX + 20, headerY + 36);
 
 			const hasMeta = metaItems.length > 0;
 			const contentBottomY = hasMeta ? 214 : 224;
@@ -721,34 +753,53 @@ function drawThemeAccents(
 			break;
 		}
 		case "light": {
-			ctx.fillStyle = addAlpha(themeConfig.borderColor, 0.08);
-			for (let i = 0; i < 8; i += 1) {
+			const gradient = ctx.createLinearGradient(0, 0, width, 0);
+			gradient.addColorStop(0, addAlpha("#9db6ff", 0.18));
+			gradient.addColorStop(0.5, addAlpha("#ffffff", 0.04));
+			gradient.addColorStop(1, addAlpha("#5B7CFA", 0.16));
+			ctx.fillStyle = gradient;
+			ctx.fillRect(24, 24, width - 48, 34);
+
+			ctx.fillStyle = addAlpha(themeConfig.borderColor, 0.12);
+			for (let i = 0; i < 9; i += 1) {
 				ctx.beginPath();
-				ctx.arc(80 + i * 85, 44, 2, 0, Math.PI * 2);
+				ctx.arc(70 + i * 82, 46, 2.5, 0, Math.PI * 2);
 				ctx.fill();
 			}
 			break;
 		}
 		case "colorful": {
 			const gradient = ctx.createLinearGradient(0, 0, width, height);
-			gradient.addColorStop(0, addAlpha("#ff9800", 0.12));
-			gradient.addColorStop(0.5, addAlpha("#00d1ff", 0.04));
-			gradient.addColorStop(1, addAlpha("#ff4f9a", 0.12));
+			gradient.addColorStop(0, addAlpha("#ff8a00", 0.24));
+			gradient.addColorStop(0.35, addAlpha("#00d1ff", 0.12));
+			gradient.addColorStop(0.7, addAlpha("#7c3aed", 0.12));
+			gradient.addColorStop(1, addAlpha("#ff4db8", 0.22));
 			ctx.fillStyle = gradient;
 			ctx.beginPath();
-			ctx.moveTo(width - 220, 24);
+			ctx.moveTo(width - 260, 24);
 			ctx.lineTo(width - 24, 24);
-			ctx.lineTo(width - 24, 140);
+			ctx.lineTo(width - 24, 170);
 			ctx.closePath();
 			ctx.fill();
+
+			ctx.strokeStyle = addAlpha("#ffffff", 0.18);
+			ctx.lineWidth = 2;
+			ctx.beginPath();
+			ctx.moveTo(280, 40);
+			ctx.bezierCurveTo(420, 90, 520, 10, 720, 80);
+			ctx.stroke();
 			break;
 		}
 		case "minimal": {
-			ctx.strokeStyle = addAlpha(themeConfig.borderColor, 0.12);
+			ctx.strokeStyle = addAlpha("#121826", 0.12);
 			ctx.lineWidth = 1;
 			ctx.beginPath();
-			ctx.moveTo(250, 150);
-			ctx.lineTo(width - 60, 150);
+			ctx.moveTo(250, 116);
+			ctx.lineTo(width - 60, 116);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.moveTo(250, 224);
+			ctx.lineTo(width - 60, 224);
 			ctx.stroke();
 			break;
 		}

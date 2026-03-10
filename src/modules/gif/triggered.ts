@@ -1,6 +1,6 @@
 /** @format */
 
-import GIFEncoder from "gifencoder";
+import { applyPalette, GIFEncoder, quantize } from "gifenc";
 import type { ImageInput } from "../../types";
 import { createCanvas, loadImage } from "../../utils/canvas-compat";
 import {
@@ -55,11 +55,8 @@ export const triggered = async (
 				}),
 			]);
 
-			// Initialize GIF encoder
-			const GIF = new GIFEncoder(256, 310);
-			GIF.start();
-			GIF.setRepeat(0); // Loop forever
-			GIF.setDelay(timeout);
+			// Initialize GIF encoder stream
+			const GIF = GIFEncoder();
 
 			// Create canvas
 			const canvas = createCanvas(256, 310);
@@ -97,7 +94,17 @@ export const triggered = async (
 						54 + LABEL_RANGE,
 					);
 
-					GIF.addFrame(ctx as unknown as CanvasRenderingContext2D);
+					const imageData = ctx.getImageData(0, 0, 256, 310).data;
+					const palette = quantize(imageData, 128) as Array<
+						[number, number, number]
+					>;
+					const frame = applyPalette(imageData, palette);
+
+					GIF.writeFrame(frame, 256, 310, {
+						palette,
+						delay: timeout,
+						repeat: i === 0 ? 0 : undefined,
+					});
 				} catch (_error) {
 					throw new ImageProcessingError(
 						`Failed to generate frame ${i + 1}`,
@@ -110,7 +117,7 @@ export const triggered = async (
 			// Finalize GIF
 			try {
 				GIF.finish();
-				const buffer = GIF.out.getData();
+				const buffer = Buffer.from(GIF.bytes());
 
 				if (!buffer || buffer.length === 0) {
 					throw new ImageProcessingError(

@@ -1,6 +1,11 @@
 /** @format */
 import { Jimp } from "jimp";
 import type { ImageInput } from "../../types";
+import {
+	ErrorHandler,
+	ImageProcessingError,
+	ValidationError,
+} from "../../utils/errors";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -15,57 +20,62 @@ export async function wave(
 	amplitude: number = 10,
 	frequency: number = 5,
 ): Promise<Buffer> {
-	if (!image) {
-		throw new Error("Image is required");
-	}
+	return ErrorHandler.withErrorHandling(async () => {
+		ErrorHandler.validateRequired(image, "image");
+		ErrorHandler.validateRange(amplitude, 1, 50, "wave amplitude");
+		ErrorHandler.validateRange(frequency, 1, 20, "wave frequency");
 
-	const isValid = await validateURL(image);
-	if (!isValid) {
-		throw new Error("Invalid URL provided");
-	}
-
-	if (amplitude < 1 || amplitude > 50) {
-		throw new Error("Amplitude must be between 1 and 50");
-	}
-
-	if (frequency < 1 || frequency > 20) {
-		throw new Error("Frequency must be between 1 and 20");
-	}
-
-	try {
-		const img = await Jimp.read(image as string);
-		const width = img.bitmap.width;
-		const height = img.bitmap.height;
-
-		// Create a new image for the wave effect
-		const output = new Jimp({ width: width, height: height });
-
-		// Apply wave distortion
-		for (let y = 0; y < height; y++) {
-			for (let x = 0; x < width; x++) {
-				// Calculate wave offset
-				const xOffset = Math.sin(y / frequency) * amplitude;
-				const yOffset = Math.cos(x / frequency) * amplitude;
-
-				// Get source pixel coordinates with wave distortion
-				const sourceX = Math.floor(x + xOffset);
-				const sourceY = Math.floor(y + yOffset);
-
-				// Ensure coordinates are within bounds
-				if (
-					sourceX >= 0 &&
-					sourceX < width &&
-					sourceY >= 0 &&
-					sourceY < height
-				) {
-					const color = img.getPixelColor(sourceX, sourceY);
-					output.setPixelColor(color, x, y);
-				}
-			}
+		const imageBuffer = await validateURL(image);
+		if (!imageBuffer) {
+			throw new ValidationError("Failed to load image", "image", image);
 		}
 
-		return await output.getBuffer("image/png");
-	} catch (error) {
-		throw new Error(`Failed to apply wave effect: ${error}`);
-	}
+		try {
+			const img = await Jimp.read(imageBuffer);
+			const width = img.bitmap.width;
+			const height = img.bitmap.height;
+			const output = new Jimp({ width, height });
+
+			for (let y = 0; y < height; y++) {
+				for (let x = 0; x < width; x++) {
+					const xOffset = Math.sin(y / frequency) * amplitude;
+					const yOffset = Math.cos(x / frequency) * amplitude;
+					const sourceX = Math.floor(x + xOffset);
+					const sourceY = Math.floor(y + yOffset);
+
+					if (
+						sourceX >= 0 &&
+						sourceX < width &&
+						sourceY >= 0 &&
+						sourceY < height
+					) {
+						const color = img.getPixelColor(sourceX, sourceY);
+						output.setPixelColor(color, x, y);
+					}
+				}
+			}
+
+			const buffer = await output.getBuffer("image/png");
+			if (!buffer || buffer.length === 0) {
+				throw new ImageProcessingError(
+					"Generated image buffer is empty",
+					"wave export",
+				);
+			}
+
+			return buffer;
+		} catch (error) {
+			if (error instanceof ImageProcessingError) {
+				throw error;
+			}
+			if (error instanceof Error) {
+				throw new ImageProcessingError(
+					`Failed to apply wave effect: ${error.message}`,
+					"wave",
+					{ amplitude, frequency },
+				);
+			}
+			throw error;
+		}
+	}, "wave filter");
 }

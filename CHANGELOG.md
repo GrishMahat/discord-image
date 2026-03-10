@@ -1,5 +1,57 @@
 # Changelog
 
+## [Unreleased] - 2026-03-08
+### Added
+- New npm scripts for generation checks:
+  - `test:gen-all`
+  - `test:gen-all:fast`
+  - `test:gen-all:full`
+- Local TypeScript declarations for `gifenc` in `src/types/gifenc.d.ts`.
+- Added preparatory TypeScript type definitions for a possible future gradient generator API in `src/types/index.ts`:
+  - This is type scaffolding only for now and not a documented, stable feature.
+- `generated/` added to `.gitignore`.
+
+### Changed
+- GIF stack migration from `gifencoder` to `gifenc` for `blink` and `triggered`.
+- `blink` defaults and internals updated for faster generation:
+  - Default size changed from `480x480` to `360x360`.
+  - Input images are resolved once before frame generation.
+  - Adaptive palette sizing and transparent color index handling added.
+- `triggered` now uses `gifenc` frame writing and reduced quantization palette size for lower frame cost.
+- `confusedStonk` rendering moved from Jimp compositing to canvas compositing with cached template loading.
+- Rank/level card rendering was redesigned with a new modern layout shared across the default and futuristic HUD variants:
+  - Added richer panel styling, glow treatments, stat cards, and a new progress bar renderer.
+  - Background images now use cover rendering with improved overlays and vignette treatment.
+- Core utility hardening and validation improvements:
+  - `validateURL` now supports HTTPS/HTTP URLs, data URLs, local file paths, and strict image size checks.
+  - `ErrorHandler`/error classes upgraded with safer serialization, improved wrapping, and richer metadata.
+  - `ImageCache` redesigned with generics, input validation, LRU-style refresh, pruning, stats, and `getOrSet`.
+  - `canvas-compat` now caches local template file buffers and normalizes source handling.
+  - `paths` now sanitizes asset paths and blocks traversal outside assets.
+  - `asset-validator` expanded (duplicate detection, typed error codes, sorted error output, extra font checks).
+- Multiple modules refactored for stronger validation/error boundaries and consistent buffer checks:
+  - Filters: `pixelate`, `wave`, `sticker`, `glitch`
+  - GIF: `blink`, `triggered`
+  - Image: `delete`, `doubleStonk`, `notStonk`, `confusedStonk`
+  - Fun: `drake`, `distractedBoyfriend`, `welcomeCard`
+  - Utils: `circle`, `color`, `denoise`, `mirror`
+- Welcome card revamp:
+  - Reworked the overall card layout and visual treatment across themes.
+  - Fixed footer/body spacing and text-overflow collisions in long server and metadata values.
+  - Replaced the fixed footer fields with customizable metadata labels and values for user-defined meta rows.
+  - Added richer theme-specific welcome card outputs for previewing theme variations during generation checks.
+  - Registered bundled Noto fonts for more consistent theme typography.
+- Music card typography now registers bundled Noto and emoji fonts instead of relying on Arial/system defaults.
+
+### Documentation
+- `CONTRIBUTING.md` now documents the local build/lint/generation checks for PRs.
+- `docs/ERROR_HANDLING.md` was rewritten to match the current exported error classes, helpers, and import paths.
+- `docs/level-card-examples.md` rewritten to a shorter practical guide.
+
+### Dependencies
+- Added: `gifenc`.
+- Removed: `gifencoder`, `@types/gifencoder`, and direct `canvas` dependency from `package.json`.
+
 ## [0.1.5] - 2025-12
 ### Added
 - Party Hat Meme Generator: Overlay a colorful party hat on any avatar image

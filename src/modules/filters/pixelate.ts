@@ -1,6 +1,11 @@
 /** @format */
 import { Jimp } from "jimp";
 import type { ImageInput } from "../../types";
+import {
+	ErrorHandler,
+	ImageProcessingError,
+	ValidationError,
+} from "../../utils/errors";
 import { validateURL } from "../../utils/utils";
 
 /**
@@ -13,24 +18,40 @@ export async function pixelate(
 	image: ImageInput,
 	pixelSize: number = 5,
 ): Promise<Buffer> {
-	if (!image) {
-		throw new Error("Image is required");
-	}
+	return ErrorHandler.withErrorHandling(async () => {
+		ErrorHandler.validateRequired(image, "image");
+		ErrorHandler.validateRange(pixelSize, 1, 50, "pixel size");
 
-	const isValid = await validateURL(image);
-	if (!isValid) {
-		throw new Error("Invalid URL provided");
-	}
+		const imageBuffer = await validateURL(image);
+		if (!imageBuffer) {
+			throw new ValidationError("Failed to load image", "image", image);
+		}
 
-	if (pixelSize < 1 || pixelSize > 50) {
-		throw new Error("Pixel size must be between 1 and 50");
-	}
+		try {
+			const img = await Jimp.read(imageBuffer);
+			img.pixelate(pixelSize);
+			const buffer = await img.getBuffer("image/png");
 
-	try {
-		const img = await Jimp.read(image);
-		img.pixelate(pixelSize);
-		return await img.getBuffer("image/png");
-	} catch (error) {
-		throw new Error(`Failed to pixelate image: ${error}`);
-	}
+			if (!buffer || buffer.length === 0) {
+				throw new ImageProcessingError(
+					"Generated image buffer is empty",
+					"pixelate export",
+				);
+			}
+
+			return buffer;
+		} catch (error) {
+			if (error instanceof ImageProcessingError) {
+				throw error;
+			}
+			if (error instanceof Error) {
+				throw new ImageProcessingError(
+					`Failed to pixelate image: ${error.message}`,
+					"pixelate",
+					{ pixelSize },
+				);
+			}
+			throw error;
+		}
+	}, "pixelate filter");
 }

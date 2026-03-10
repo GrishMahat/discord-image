@@ -17,6 +17,7 @@ build/
 # Testing
 coverage/
 test-output/
+generated/
 test-qa.mjs
 test-all.mjs
 # Logs

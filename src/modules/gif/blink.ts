@@ -1,6 +1,6 @@
 /** @format */
 
-import GIFEncoder from "gifencoder";
+import { applyPalette, GIFEncoder, quantize } from "gifenc";
 import type { ImageInput } from "../../types";
 import { createCanvas, loadImage } from "../../utils/canvas-compat";
 import { validateURL } from "../../utils/utils";
@@ -26,6 +26,8 @@ export const blink = async (
 		| ImageInput,
 	...images: ImageInput[]
 ): Promise<Buffer> => {
+	type GifFramePalette = Array<[number, number, number]>;
+
 	let options: {
 		width?: number;
 		height?: number;
@@ -65,37 +67,32 @@ export const blink = async (
 	}
 
 	// Set default options
-	const width = options?.width || 480;
-	const height = options?.height || 480;
+	const width = options?.width || 360;
+	const height = options?.height || 360;
 	const quality = options?.quality || 10; // 1-20, lower is better
 	const repeat = options?.repeat ?? 0; // 0 = loop forever
-	const transparent = options?.transparent ?? 0; // transparent color (black)
+	const transparent = options?.transparent;
 	const fitMethod = options?.fitMethod || "cover";
 
-	// Validate all images before processing
-	for (const image of images) {
-		const isValid = await validateURL(image);
-		if (!isValid) {
-			throw new Error("You must provide a valid image URL or buffer.");
-		}
+	// Resolve image inputs once so URLs/files are not fetched/read repeatedly.
+	const resolvedImages = await Promise.all(
+		images.map((image) => validateURL(image)),
+	);
+	if (resolvedImages.some((image) => !image)) {
+		throw new Error("You must provide a valid image URL or buffer.");
 	}
 
-	// Initialize GIF encoder
-	const GIF = new GIFEncoder(width, height);
-	GIF.start();
-	GIF.setRepeat(repeat);
-	GIF.setDelay(delay);
-	GIF.setQuality(quality);
-	GIF.setTransparent(transparent);
+	// Initialize GIF encoder stream
+	const GIF = GIFEncoder();
 
 	// Create canvas for drawing images
 	const canvas = createCanvas(width, height);
 	const ctx = canvas.getContext("2d");
 
 	// Process each image
-	for (const image of images) {
+	for (const [index, imageBuffer] of resolvedImages.entries()) {
 		try {
-			const base = await loadImage(image);
+			const base = await loadImage(imageBuffer);
 
 			// Clear the canvas
 			ctx.fillStyle = "rgba(0, 0, 0, 0)";
@@ -135,8 +132,22 @@ export const blink = async (
 			// Draw the image
 			ctx.drawImage(base, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
 
-			// Add the frame
-			GIF.addFrame(ctx as unknown as CanvasRenderingContext2D);
+			const imageData = ctx.getImageData(0, 0, width, height).data;
+			// gifencoder used lower quality values for better output.
+			// Keep similar semantics by reducing palette size as "quality" increases.
+			const maxColors = Math.max(48, Math.min(192, 232 - quality * 8));
+			const palette = quantize(imageData, maxColors) as GifFramePalette;
+			const frame = applyPalette(imageData, palette);
+
+			const transparentIndex = findTransparentIndex(palette, transparent);
+
+			GIF.writeFrame(frame, width, height, {
+				palette,
+				delay,
+				repeat: index === 0 ? repeat : undefined,
+				transparent: transparentIndex !== undefined,
+				transparentIndex,
+			});
 		} catch (error) {
 			console.error(`Error processing image: ${error}`);
 			throw new Error(`Failed to process image: ${error}`);
@@ -145,5 +156,44 @@ export const blink = async (
 
 	// Finalize the GIF
 	GIF.finish();
-	return GIF.out.getData();
+	return Buffer.from(GIF.bytes());
 };
+
+function parseTransparentColor(
+	transparent?: number | string,
+): [number, number, number] | undefined {
+	if (transparent === undefined) return undefined;
+
+	if (typeof transparent === "number") {
+		return [
+			(transparent >> 16) & 0xff,
+			(transparent >> 8) & 0xff,
+			transparent & 0xff,
+		];
+	}
+
+	const normalized = transparent.trim();
+	const hex = normalized.startsWith("#") ? normalized.slice(1) : normalized;
+	if (!/^[\da-fA-F]{6}$/.test(hex)) return undefined;
+
+	return [
+		Number.parseInt(hex.slice(0, 2), 16),
+		Number.parseInt(hex.slice(2, 4), 16),
+		Number.parseInt(hex.slice(4, 6), 16),
+	];
+}
+
+function findTransparentIndex(
+	palette: Array<[number, number, number]>,
+	transparent?: number | string,
+): number | undefined {
+	const transparentColor = parseTransparentColor(transparent);
+	if (!transparentColor) return undefined;
+
+	const [tr, tg, tb] = transparentColor;
+	const index = palette.findIndex(
+		([r, g, b]) => r === tr && g === tg && b === tb,
+	);
+
+	return index >= 0 ? index : undefined;
+}

@@ -849,195 +849,15 @@ export class RankCard {
 		avatarURL: ImageInput,
 		progressValue: number,
 	): Promise<void> {
-		// --- Draw background ---
-		if (this.backgroundImage) {
-			try {
-				const bgImage = await loadImage(this.backgroundImage);
-				ctx.drawImage(bgImage, 0, 0, width, height);
-
-				// Apply blur if specified
-				if (this.backgroundBlur > 0) {
-					// Simulate blur by drawing a semi-transparent overlay
-					ctx.fillStyle = "rgba(0,0,0,0.5)";
-					for (let i = 0; i < this.backgroundBlur; i++) {
-						ctx.fillRect(0, 0, width, height);
-					}
-				}
-			} catch (_error) {
-				console.warn(
-					"Failed to load background image, using generated background",
-				);
-				this.drawGeneratedBackground(ctx, width, height, themeConfig);
-			}
-		} else {
-			// Use generated background instead of solid color
-			this.drawGeneratedBackground(ctx, width, height, themeConfig);
-		}
-
-		// Apply overlay
-		ctx.fillStyle = this.backgroundOverlay;
-		ctx.fillRect(0, 0, width, height);
-
-		// --- Draw card frame ---
-		// Add a subtle inner glow to the card
-		const cardMargin = 20;
-		const cornerRadius = 15;
-
-		// Draw card background with rounded corners
-		ctx.save();
-		roundRect(
+		await this.renderModernLevelCard(
 			ctx,
-			cardMargin,
-			cardMargin,
-			width - cardMargin * 2,
-			height - cardMargin * 2,
-			cornerRadius,
-		);
-		ctx.clip();
-
-		// Create gradient for card background
-		const cardGradient = ctx.createLinearGradient(0, 0, width, height);
-		cardGradient.addColorStop(0, `rgba(30, 30, 40, 0.7)`);
-		cardGradient.addColorStop(1, `rgba(20, 20, 30, 0.8)`);
-		ctx.fillStyle = cardGradient;
-		ctx.fillRect(
-			cardMargin,
-			cardMargin,
-			width - cardMargin * 2,
-			height - cardMargin * 2,
-		);
-
-		// Add subtle highlight at the top
-		const highlightGradient = ctx.createLinearGradient(
-			0,
-			cardMargin,
-			0,
-			cardMargin + 70,
-		);
-		highlightGradient.addColorStop(0, `rgba(255, 255, 255, 0.1)`);
-		highlightGradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
-		ctx.fillStyle = highlightGradient;
-		ctx.fillRect(cardMargin, cardMargin, width - cardMargin * 2, 70);
-
-		ctx.restore();
-
-		// Draw card border with rounded corners
-		ctx.strokeStyle = `rgba(255, 255, 255, 0.1)`;
-		ctx.lineWidth = 1;
-		roundRect(
-			ctx,
-			cardMargin,
-			cardMargin,
-			width - cardMargin * 2,
-			height - cardMargin * 2,
-			cornerRadius,
-		);
-		ctx.stroke();
-
-		// --- Draw avatar with glow effect ---
-		let avatarImg: any;
-		try {
-			avatarImg = await loadImage(avatarURL);
-		} catch (_error) {
-			throw new Error("Failed to load avatar image.");
-		}
-
-		const avatarX = 50;
-		const avatarY = 80;
-
-		// Draw avatar glow if enabled
-		const avatarGlowColor = this.avatarGlow || themeConfig.avatarGlow;
-		if (avatarGlowColor) {
-			ctx.save();
-			ctx.shadowColor = avatarGlowColor;
-			ctx.shadowBlur = this.avatarGlowIntensity;
-
-			// Draw a circle for the glow effect
-			ctx.beginPath();
-			ctx.arc(
-				avatarX + this.avatarSize / 2,
-				avatarY + this.avatarSize / 2,
-				this.avatarSize / 2,
-				0,
-				Math.PI * 2,
-				false,
-			);
-			ctx.closePath();
-			ctx.fillStyle = avatarGlowColor;
-			ctx.fill();
-			ctx.restore();
-		}
-
-		// Draw avatar border if specified
-		if (this.avatarBorder) {
-			ctx.save();
-			ctx.beginPath();
-			ctx.arc(
-				avatarX + this.avatarSize / 2,
-				avatarY + this.avatarSize / 2,
-				this.avatarSize / 2 + this.avatarBorderWidth / 2,
-				0,
-				Math.PI * 2,
-				false,
-			);
-			ctx.closePath();
-			ctx.strokeStyle = this.avatarBorder;
-			ctx.lineWidth = this.avatarBorderWidth;
-			ctx.stroke();
-			ctx.restore();
-		}
-
-		// Create a circular clip for the avatar
-		ctx.save();
-		ctx.beginPath();
-		ctx.arc(
-			avatarX + this.avatarSize / 2,
-			avatarY + this.avatarSize / 2,
-			this.avatarSize / 2,
-			0,
-			Math.PI * 2,
+			width,
+			height,
+			themeConfig,
+			avatarURL,
+			progressValue,
 			false,
 		);
-		ctx.closePath();
-		ctx.clip();
-		ctx.drawImage(
-			avatarImg,
-			avatarX,
-			avatarY,
-			this.avatarSize,
-			this.avatarSize,
-		);
-		ctx.restore();
-
-		// --- Draw text ---
-		const textX = avatarX + this.avatarSize + 30;
-		let currentY = avatarY + this.fontSize;
-		currentY = this.drawText(ctx, textX, currentY);
-
-		// --- Draw progress bar ---
-		const progressBarWidth = width - 100;
-		const progressBarHeight = 30;
-		const progressBarX = 50;
-		const progressBarY = height - 80;
-
-		// Create a container with background for progress
-		ctx.save();
-		// Add a subtle glow to the progress bar
-		ctx.shadowColor = this.progressBarColor || themeConfig.progressBarColor;
-		ctx.shadowBlur = 10;
-		ctx.shadowOffsetX = 0;
-		ctx.shadowOffsetY = 0;
-
-		// Draw the progress bar with improved visuals
-		this.drawProgressBar(
-			ctx,
-			progressValue,
-			progressBarX,
-			progressBarY,
-			progressBarWidth,
-			progressBarHeight,
-		);
-		ctx.restore();
 	}
 
 	// New implementation for the futuristic HUD layout
@@ -1049,7 +869,163 @@ export class RankCard {
 		avatarURL: ImageInput,
 		progressValue: number,
 	): Promise<void> {
-		// Load the avatar
+		await this.renderModernLevelCard(
+			ctx,
+			width,
+			height,
+			themeConfig,
+			avatarURL,
+			progressValue,
+			true,
+		);
+	}
+
+	private drawImageCover(
+		ctx: any,
+		image: { width: number; height: number },
+		width: number,
+		height: number,
+	): void {
+		const scale = Math.max(width / image.width, height / image.height);
+		const drawWidth = image.width * scale;
+		const drawHeight = image.height * scale;
+		const drawX = (width - drawWidth) / 2;
+		const drawY = (height - drawHeight) / 2;
+		ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+	}
+
+	private drawRadialGlow(
+		ctx: any,
+		x: number,
+		y: number,
+		radius: number,
+		color: string,
+		alpha: number,
+	): void {
+		const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+		gradient.addColorStop(0, this.adjustColorAlpha(color, alpha));
+		gradient.addColorStop(1, this.adjustColorAlpha(color, 0));
+		ctx.fillStyle = gradient;
+		ctx.beginPath();
+		ctx.arc(x, y, radius, 0, Math.PI * 2);
+		ctx.fill();
+	}
+
+	private drawInfoChip(
+		ctx: any,
+		x: number,
+		y: number,
+		width: number,
+		height: number,
+		label: string,
+		value: string,
+		accentColor: string,
+	): void {
+		roundRect(ctx, x, y, width, height, height / 2);
+		ctx.fillStyle = "rgba(255,255,255,0.06)";
+		ctx.fill();
+		ctx.strokeStyle = this.adjustColorAlpha(accentColor, 0.22);
+		ctx.lineWidth = 1;
+		ctx.stroke();
+
+		ctx.fillStyle = this.adjustColorAlpha("#FFFFFF", 0.64);
+		ctx.font = "700 11px sans-serif";
+		ctx.fillText(label, x + 14, y + 18);
+
+		ctx.textAlign = "right";
+		ctx.fillStyle = "#FFFFFF";
+		ctx.font = "700 16px sans-serif";
+		ctx.fillText(value, x + width - 14, y + 19);
+		ctx.textAlign = "left";
+	}
+
+	private drawStatCard(
+		ctx: any,
+		x: number,
+		y: number,
+		width: number,
+		height: number,
+		label: string,
+		value: string,
+		accentColor: string,
+		themeConfig: any,
+	): void {
+		roundRect(ctx, x, y, width, height, 20);
+		const cardGradient = ctx.createLinearGradient(x, y, x, y + height);
+		cardGradient.addColorStop(0, "rgba(255,255,255,0.06)");
+		cardGradient.addColorStop(1, "rgba(255,255,255,0.03)");
+		ctx.fillStyle = cardGradient;
+		ctx.fill();
+		ctx.strokeStyle = this.adjustColorAlpha(accentColor, 0.2);
+		ctx.lineWidth = 1;
+		ctx.stroke();
+
+		ctx.fillStyle = this.adjustColorAlpha(themeConfig.textColor || "#FFFFFF", 0.62);
+		ctx.font = `700 11px ${this.fontFamily || themeConfig.fontFamily || "sans-serif"}`;
+		ctx.fillText(label, x + 16, y + 20);
+
+		ctx.fillStyle = this.textColor || themeConfig.textColor || "#FFFFFF";
+		ctx.font = `${this.bold ? "700" : "600"} 28px ${this.fontFamily || themeConfig.fontFamily || "sans-serif"}`;
+		ctx.fillText(value, x + 16, y + 56);
+	}
+
+	private drawModernProgressBar(
+		ctx: any,
+		progress: number,
+		x: number,
+		y: number,
+		width: number,
+		height: number,
+		accentColor: string,
+		themeConfig: any,
+	): void {
+		roundRect(ctx, x, y, width, height, height / 2);
+		ctx.fillStyle =
+			this.progressBarBackgroundColor ||
+			this.adjustColorAlpha(themeConfig.progressBarBackgroundColor || "#1f2937", 0.85);
+		ctx.fill();
+		ctx.strokeStyle =
+			this.progressBarBorderColor || this.adjustColorAlpha(accentColor, 0.24);
+		ctx.lineWidth = Math.max(1, this.progressBarBorderWidth || 1);
+		ctx.stroke();
+
+		const innerWidth = Math.max(0, width * progress);
+		if (innerWidth <= 0) return;
+
+		const fillGradient = ctx.createLinearGradient(x, y, x + innerWidth, y);
+		if (this.progressBarGradient && this.progressBarGradient.length > 1) {
+			for (const stop of this.progressBarGradient) {
+				fillGradient.addColorStop(stop.position, stop.color);
+			}
+		} else {
+			fillGradient.addColorStop(0, this.adjustColorBrightness(accentColor, 0.18));
+			fillGradient.addColorStop(1, accentColor);
+		}
+
+		ctx.save();
+		roundRect(ctx, x, y, innerWidth, height, height / 2);
+		ctx.clip();
+		ctx.fillStyle = fillGradient;
+		ctx.fillRect(x, y, innerWidth, height);
+
+		const shine = ctx.createLinearGradient(x, y, x, y + height);
+		shine.addColorStop(0, "rgba(255,255,255,0.28)");
+		shine.addColorStop(0.45, "rgba(255,255,255,0.08)");
+		shine.addColorStop(1, "rgba(255,255,255,0)");
+		ctx.fillStyle = shine;
+		ctx.fillRect(x, y, innerWidth, height / 1.8);
+		ctx.restore();
+	}
+
+	private async renderModernLevelCard(
+		ctx: any,
+		width: number,
+		height: number,
+		themeConfig: any,
+		avatarURL: ImageInput,
+		progressValue: number,
+		isHud: boolean,
+	): Promise<void> {
 		let avatarImg: any;
 		try {
 			avatarImg = await loadImage(avatarURL);
@@ -1057,119 +1033,179 @@ export class RankCard {
 			throw new Error("Failed to load avatar image.");
 		}
 
-		// --- Draw background ---
+		const accentColor =
+			this.progressBarColor || themeConfig.progressBarColor || "#7c3aed";
+		const softAccent = this.adjustColorAlpha(accentColor, isHud ? 0.28 : 0.2);
+		const panelColor = isHud ? "rgba(8, 16, 28, 0.78)" : "rgba(13, 18, 28, 0.76)";
+
 		if (this.backgroundImage) {
 			try {
 				const bgImage = await loadImage(this.backgroundImage);
-				ctx.drawImage(bgImage, 0, 0, width, height);
-
-				// Apply dark overlay for readability
-				ctx.fillStyle = "rgba(0,10,30,0.7)";
+				this.drawImageCover(ctx, bgImage, width, height);
+				const bgOverlay = ctx.createLinearGradient(0, 0, width, height);
+				bgOverlay.addColorStop(0, isHud ? "rgba(4, 10, 20, 0.62)" : "rgba(8, 10, 18, 0.54)");
+				bgOverlay.addColorStop(1, isHud ? "rgba(4, 10, 20, 0.82)" : "rgba(8, 10, 18, 0.78)");
+				ctx.fillStyle = bgOverlay;
 				ctx.fillRect(0, 0, width, height);
 			} catch (_error) {
-				console.warn(
-					"Failed to load background image, using generated tech pattern",
-				);
-				this.drawTechPattern(ctx, width, height, themeConfig);
+				this.drawGeneratedBackground(ctx, width, height, themeConfig);
 			}
-		} else {
-			// Use tech pattern as background
+		} else if (isHud) {
 			this.drawTechPattern(ctx, width, height, themeConfig);
+		} else {
+			this.drawGeneratedBackground(ctx, width, height, themeConfig);
 		}
 
-		// Apply an additional overlay for the HUD feel
-		const overlayGradient = ctx.createLinearGradient(0, 0, width, 0);
-		overlayGradient.addColorStop(0, "rgba(0,20,50,0.4)");
-		overlayGradient.addColorStop(0.5, "rgba(0,10,30,0.2)");
-		overlayGradient.addColorStop(1, "rgba(0,20,50,0.4)");
-		ctx.fillStyle = overlayGradient;
-		ctx.fillRect(0, 0, width, height);
+		this.drawRadialGlow(ctx, 120, 90, 240, accentColor, isHud ? 0.26 : 0.18);
+		this.drawRadialGlow(ctx, width - 120, height - 70, 260, accentColor, 0.14);
+		this.drawVignette(ctx, width, height, isHud ? 0.42 : 0.28);
 
-		// Add scan line effect
-		this.drawScanLines(ctx, width, height);
+		const shellX = 24;
+		const shellY = 24;
+		const shellWidth = width - shellX * 2;
+		const shellHeight = height - shellY * 2;
+		const shellRadius = 28;
 
-		// --- Draw futuristic frame elements ---
-		const accentColor = themeConfig.progressBarColor || "#00FFFF";
-		const dimAccentColor = this.adjustColorAlpha(accentColor, 0.3);
+		const shellGradient = ctx.createLinearGradient(shellX, shellY, width, height);
+		shellGradient.addColorStop(0, panelColor);
+		shellGradient.addColorStop(1, isHud ? "rgba(7, 12, 20, 0.9)" : "rgba(17, 21, 30, 0.84)");
+		ctx.fillStyle = shellGradient;
+		roundRect(ctx, shellX, shellY, shellWidth, shellHeight, shellRadius);
+		ctx.fill();
 
-		// Draw corner elements
-		this.drawHUDCorners(ctx, width, height, accentColor);
+		ctx.strokeStyle = this.adjustColorAlpha(accentColor, isHud ? 0.5 : 0.24);
+		ctx.lineWidth = isHud ? 1.6 : 1;
+		roundRect(ctx, shellX, shellY, shellWidth, shellHeight, shellRadius);
+		ctx.stroke();
 
-		// Draw avatar area with hexagonal frame
-		const avatarSize = this.avatarSize * 1.2; // Make avatar slightly bigger for this layout
-		const avatarX = 70;
-		const avatarY = height / 2 - avatarSize / 2;
+		if (isHud) {
+			this.drawScanLines(ctx, width, height);
+			this.drawHUDCorners(ctx, width, height, accentColor);
+		}
 
-		// Draw hexagonal avatar frame with glow
-		this.drawHexagonalAvatar(
+		const leftX = 44;
+		const leftY = 44;
+		const leftWidth = 206;
+		const leftHeight = shellHeight - 40;
+		const rightX = 268;
+		const rightY = 44;
+		const rightWidth = width - rightX - 44;
+		const rightHeight = shellHeight - 40;
+
+		ctx.fillStyle = "rgba(255,255,255,0.045)";
+		roundRect(ctx, leftX, leftY, leftWidth, leftHeight, 24);
+		ctx.fill();
+		roundRect(ctx, rightX, rightY, rightWidth, rightHeight, 24);
+		ctx.fill();
+
+		const avatarSize = Math.max(132, this.avatarSize + 24);
+		const avatarX = leftX + leftWidth / 2 - avatarSize / 2;
+		const avatarY = 72;
+		const avatarGlow = this.avatarGlow || themeConfig.avatarGlow || accentColor;
+		this.drawRadialGlow(
 			ctx,
-			avatarX,
-			avatarY,
-			avatarSize,
-			avatarImg,
+			avatarX + avatarSize / 2,
+			avatarY + avatarSize / 2,
+			88,
+			avatarGlow,
+			0.34,
+		);
+
+		ctx.fillStyle = "rgba(255,255,255,0.06)";
+		ctx.beginPath();
+		ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2 + 12, 0, Math.PI * 2);
+		ctx.fill();
+
+		ctx.save();
+		ctx.beginPath();
+		ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
+		ctx.closePath();
+		ctx.clip();
+		ctx.drawImage(avatarImg, avatarX, avatarY, avatarSize, avatarSize);
+		ctx.restore();
+
+		ctx.beginPath();
+		ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2 + 6, 0, Math.PI * 2);
+		ctx.strokeStyle = this.avatarBorder || accentColor;
+		ctx.lineWidth = this.avatarBorderWidth;
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2 + 14, 0, Math.PI * 2);
+		ctx.strokeStyle = this.adjustColorAlpha(accentColor, 0.18);
+		ctx.lineWidth = 1.5;
+		ctx.stroke();
+
+		this.drawInfoChip(ctx, leftX + 18, leftY + leftHeight - 90, leftWidth - 36, 28, "LEVEL", `#${this.level}`, accentColor);
+		this.drawInfoChip(
+			ctx,
+			leftX + 18,
+			leftY + leftHeight - 52,
+			leftWidth - 36,
+			34,
+			"PROGRESS",
+			`${Math.round(progressValue * 100)}%`,
 			accentColor,
 		);
 
-		// Add decorative HUD elements around avatar
-		this.drawAvatarHUDElements(
+		const headingFont = this.fontFamily || themeConfig.fontFamily || "sans-serif";
+		const titleSize = Math.max(this.fontSize + 10, 28);
+		ctx.fillStyle = this.adjustColorAlpha(themeConfig.textColor || "#fff", 0.7);
+		ctx.font = `700 14px ${headingFont}`;
+		ctx.fillText(isHud ? "PLAYER STATUS" : "LEVEL OVERVIEW", rightX + 22, 76);
+
+		ctx.fillStyle = this.textColor || themeConfig.textColor || "#FFFFFF";
+		ctx.font = `${this.bold ? "700" : "600"} ${titleSize}px ${headingFont}`;
+		const nameLines = this.wrapText(ctx, this.name, rightWidth - 48).slice(0, 2);
+		let nameY = 116;
+		for (const line of nameLines) {
+			ctx.fillText(line, rightX + 22, nameY);
+			nameY += titleSize + 6;
+		}
+
+		const statsY = 152;
+		const statWidth = 132;
+		const statGap = 14;
+		this.drawStatCard(ctx, rightX + 22, statsY, statWidth, 76, "LEVEL", `${this.level}`, accentColor, themeConfig);
+		this.drawStatCard(ctx, rightX + 22 + statWidth + statGap, statsY, statWidth, 76, "CURRENT XP", `${this.xp}`, accentColor, themeConfig);
+		this.drawStatCard(
 			ctx,
-			avatarX,
-			avatarY,
-			avatarSize,
+			rightX + 22 + (statWidth + statGap) * 2,
+			statsY,
+			statWidth + 24,
+			76,
+			this.showLevelUpXp ? "TO NEXT" : "MAX XP",
+			`${this.showLevelUpXp ? (this.levelUpXp !== undefined ? this.levelUpXp : this.maxXp - this.xp) : this.maxXp}`,
 			accentColor,
-			dimAccentColor,
+			themeConfig,
 		);
 
-		// Draw futuristic text area with angles and shapes
-		const textStartX = avatarX + avatarSize + 60;
-		const textWidth = width - textStartX - 60; // Padding on right side
-		const textY = height / 3 - 20;
+		const progressX = rightX + 22;
+		const progressY = 258;
+		const progressWidth = rightWidth - 44;
+		ctx.fillStyle = this.adjustColorAlpha(themeConfig.textColor || "#fff", 0.72);
+		ctx.font = `700 13px ${headingFont}`;
+		ctx.fillText("LEVEL PROGRESS", progressX, progressY - 16);
+		ctx.textAlign = "right";
+		ctx.fillText(`${Math.round(progressValue * 100)}%`, progressX + progressWidth, progressY - 16);
+		ctx.textAlign = "left";
 
-		// Draw angled header bar
-		this.drawAngledHeader(
-			ctx,
-			textStartX,
-			textY,
-			textWidth,
-			accentColor,
-			this.name,
-		);
+		this.drawModernProgressBar(ctx, progressValue, progressX, progressY, progressWidth, 24, accentColor, themeConfig);
 
-		// Draw level badge
-		const levelBadgeX = textStartX;
-		const levelBadgeY = textY + 70;
-		this.drawHexLevelBadge(
-			ctx,
-			levelBadgeX,
-			levelBadgeY,
-			this.level,
-			accentColor,
-		);
+		ctx.fillStyle = this.adjustColorAlpha(themeConfig.textColor || "#fff", 0.72);
+		ctx.font = `600 14px ${headingFont}`;
+		ctx.fillText(`${this.xp} / ${this.maxXp} XP`, progressX, progressY + 48);
 
-		// Draw stats display
-		const statsX = levelBadgeX + 120;
-		const statsY = levelBadgeY + 10;
-		this.drawFuturisticStats(ctx, statsX, statsY, accentColor);
+		if (this.showNextLevelXp) {
+			const nextLevelValue = this.nextLevelXp !== undefined ? this.nextLevelXp : this.maxXp;
+			ctx.textAlign = "right";
+			ctx.fillText(`Next Level: ${nextLevelValue} XP`, progressX + progressWidth, progressY + 48);
+			ctx.textAlign = "left";
+		}
 
-		// Draw segmented hex progress bar
-		const progressBarY = height - 100;
-		const progressBarX = textStartX;
-		const progressBarWidth = textWidth;
-		this.drawHexProgressBar(
-			ctx,
-			progressBarX,
-			progressBarY,
-			progressBarWidth,
-			40,
-			progressValue,
-			accentColor,
-		);
-
-		// Add decorative data lines
-		this.drawDataLines(ctx, width, height, accentColor);
-
-		// Add a subtle blue vignette effect for depth
-		this.drawVignette(ctx, width, height, 0.4);
+		if (isHud) {
+			this.drawDataLines(ctx, width, height, accentColor);
+		}
 	}
 
 	// Helper methods for the futuristic HUD layout

@@ -1,37 +1,120 @@
 /** @format */
 
+type LogLevel = "debug" | "info" | "warn" | "error";
+
+type ErrorDetails = Record<string, unknown>;
+type ConstructorFn = (...args: unknown[]) => unknown;
+
+const LOG_LEVELS: Record<LogLevel, number> = {
+	debug: 0,
+	info: 1,
+	warn: 2,
+	error: 3,
+};
+
+function clampStatusCode(code: number): number {
+	if (!Number.isInteger(code)) return 500;
+	if (code < 100 || code > 599) return 500;
+	return code;
+}
+
+function toError(error: unknown): Error {
+	return error instanceof Error ? error : new Error(String(error));
+}
+
+function safeSerialize(
+	value: unknown,
+	seen: WeakSet<object> = new WeakSet(),
+	depth = 0,
+): unknown {
+	if (value === null || value === undefined) return value;
+	if (
+		typeof value === "string" ||
+		typeof value === "number" ||
+		typeof value === "boolean"
+	) {
+		return value;
+	}
+	if (typeof value === "bigint") return value.toString();
+	if (typeof value === "symbol") return value.toString();
+	if (typeof value === "function")
+		return `[Function ${(value as { name?: string }).name || "anonymous"}]`;
+	if (Buffer.isBuffer(value)) return `[Buffer length=${value.length}]`;
+
+	if (value instanceof Date) return value.toISOString();
+	if (value instanceof Error) {
+		return {
+			name: value.name,
+			message: value.message,
+			stack: value.stack,
+		};
+	}
+
+	if (depth >= 4) return "[MaxDepthReached]";
+	if (Array.isArray(value)) {
+		return value.map((item) => safeSerialize(item, seen, depth + 1));
+	}
+
+	if (typeof value === "object") {
+		if (seen.has(value as object)) return "[Circular]";
+		seen.add(value as object);
+
+		const out: Record<string, unknown> = {};
+		for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+			out[k] = safeSerialize(v, seen, depth + 1);
+		}
+		return out;
+	}
+
+	return String(value);
+}
+
 /**
  * Base error class for discord-image-utils
  */
 export class DiscordImageError extends Error {
 	public readonly code: string;
 	public readonly statusCode: number;
-	public readonly details?: Record<string, any>;
+	public readonly details?: ErrorDetails;
 	public readonly timestamp: Date;
+	public readonly cause?: unknown;
 
 	constructor(
 		message: string,
 		code: string = "UNKNOWN_ERROR",
 		statusCode: number = 500,
-		details?: Record<string, any>,
+		details?: ErrorDetails,
+		cause?: unknown,
 	) {
 		super(message);
 		this.name = this.constructor.name;
 		this.code = code;
-		this.statusCode = statusCode;
-		this.details = details;
+		this.statusCode = clampStatusCode(statusCode);
+		this.details = details
+			? (safeSerialize(details) as ErrorDetails)
+			: undefined;
 		this.timestamp = new Date();
+		this.cause = cause;
 
-		// Maintains proper stack trace for where our error was thrown (only available on V8)
-		if ((Error as any).captureStackTrace) {
-			(Error as any).captureStackTrace(this, this.constructor);
+		if (
+			(Error as unknown as { captureStackTrace?: ConstructorFn })
+				.captureStackTrace
+		) {
+			(
+				Error as unknown as {
+					captureStackTrace: (
+						target: object,
+						constructorOpt?: ConstructorFn,
+					) => void;
+				}
+			).captureStackTrace(this, this.constructor as unknown as ConstructorFn);
 		}
 	}
 
 	/**
 	 * Convert error to JSON format
 	 */
-	toJSON(): Record<string, any> {
+	toJSON(): Record<string, unknown> {
 		return {
 			name: this.name,
 			message: this.message,
@@ -39,6 +122,7 @@ export class DiscordImageError extends Error {
 			statusCode: this.statusCode,
 			details: this.details,
 			timestamp: this.timestamp.toISOString(),
+			cause: safeSerialize(this.cause),
 			stack: this.stack,
 		};
 	}
@@ -48,10 +132,10 @@ export class DiscordImageError extends Error {
  * Validation error class
  */
 export class ValidationError extends DiscordImageError {
-	constructor(message: string, field?: string, value?: any) {
+	constructor(message: string, field?: string, value?: unknown) {
 		super(message, "VALIDATION_ERROR", 400, {
 			field,
-			value: typeof value === "object" ? JSON.stringify(value) : value,
+			value: safeSerialize(value),
 		});
 	}
 }
@@ -72,11 +156,7 @@ export class NetworkError extends DiscordImageError {
  * Image processing error class
  */
 export class ImageProcessingError extends DiscordImageError {
-	constructor(
-		message: string,
-		operation?: string,
-		imageInfo?: Record<string, any>,
-	) {
+	constructor(message: string, operation?: string, imageInfo?: ErrorDetails) {
 		super(message, "IMAGE_PROCESSING_ERROR", 500, {
 			operation,
 			imageInfo,
@@ -123,12 +203,12 @@ export class TimeoutError extends DiscordImageError {
  * Error handler utility functions
  */
 export class ErrorHandler {
-	private static logLevel: "debug" | "info" | "warn" | "error" = "error";
+	private static logLevel: LogLevel = "error";
 
 	/**
 	 * Set the logging level
 	 */
-	static setLogLevel(level: "debug" | "info" | "warn" | "error"): void {
+	static setLogLevel(level: LogLevel): void {
 		ErrorHandler.logLevel = level;
 	}
 
@@ -137,27 +217,28 @@ export class ErrorHandler {
 	 */
 	static log(
 		error: Error | DiscordImageError,
-		level: "debug" | "info" | "warn" | "error" = "error",
+		level: LogLevel = "error",
 	): void {
-		const levels = { debug: 0, info: 1, warn: 2, error: 3 };
-		const currentLevel = levels[ErrorHandler.logLevel];
-		const targetLevel = levels[level];
+		const currentLevel = LOG_LEVELS[ErrorHandler.logLevel];
+		const targetLevel = LOG_LEVELS[level];
 
-		if (targetLevel >= currentLevel) {
-			const timestamp = new Date().toISOString();
-			const prefix = `[${timestamp}] [${level.toUpperCase()}]`;
+		if (targetLevel < currentLevel) return;
 
-			if (error instanceof DiscordImageError) {
-				console[level](`${prefix} ${error.code}: ${error.message}`, {
-					details: error.details,
-					stack: error.stack,
-				});
-			} else {
-				console[level](`${prefix} ${error.name}: ${error.message}`, {
-					stack: error.stack,
-				});
-			}
+		const timestamp = new Date().toISOString();
+		const prefix = `[${timestamp}] [${level.toUpperCase()}]`;
+
+		if (error instanceof DiscordImageError) {
+			console[level](`${prefix} ${error.code}: ${error.message}`, {
+				details: error.details,
+				cause: safeSerialize(error.cause),
+				stack: error.stack,
+			});
+			return;
 		}
+
+		console[level](`${prefix} ${error.name}: ${error.message}`, {
+			stack: error.stack,
+		});
 	}
 
 	/**
@@ -178,15 +259,16 @@ export class ErrorHandler {
 				throw error;
 			}
 
-			// Convert unknown errors to DiscordImageError
+			const originalError = toError(error);
 			const wrappedError = new DiscordImageError(
-				`Unexpected error${contextMessage}: ${error instanceof Error ? error.message : String(error)}`,
+				`Unexpected error${contextMessage}: ${originalError.message}`,
 				"UNEXPECTED_ERROR",
 				500,
 				{
 					context,
-					originalError: error instanceof Error ? error.name : typeof error,
+					originalError: originalError.name,
 				},
+				originalError,
 			);
 
 			ErrorHandler.log(wrappedError);
@@ -194,7 +276,7 @@ export class ErrorHandler {
 			if (fallback !== undefined) {
 				ErrorHandler.log(
 					new DiscordImageError(
-						`Using fallback value for ${context}`,
+						`Using fallback value for ${context || "operation"}`,
 						"FALLBACK_USED",
 						200,
 					),
@@ -319,7 +401,7 @@ export class ErrorHandler {
 	/**
 	 * Create a safe wrapper for synchronous functions
 	 */
-	static safeFn<T extends any[], R>(
+	static safeFn<T extends unknown[], R>(
 		fn: (...args: T) => R,
 		context?: string,
 		fallback?: R,
@@ -335,17 +417,17 @@ export class ErrorHandler {
 					throw error;
 				}
 
+				const originalError = toError(error);
 				const wrappedError = new DiscordImageError(
-					`Unexpected error${contextMessage}: ${error instanceof Error ? error.message : String(error)}`,
+					`Unexpected error${contextMessage}: ${originalError.message}`,
 					"UNEXPECTED_ERROR",
 					500,
 					{
 						context,
-						args: args.map((arg) =>
-							typeof arg === "object" ? JSON.stringify(arg) : arg,
-						),
-						originalError: error instanceof Error ? error.name : typeof error,
+						args: safeSerialize(args),
+						originalError: originalError.name,
 					},
+					originalError,
 				);
 
 				ErrorHandler.log(wrappedError);
@@ -353,7 +435,7 @@ export class ErrorHandler {
 				if (fallback !== undefined) {
 					ErrorHandler.log(
 						new DiscordImageError(
-							`Using fallback value for ${context}`,
+							`Using fallback value for ${context || "operation"}`,
 							"FALLBACK_USED",
 							200,
 						),
@@ -403,7 +485,7 @@ export class RetryHandler {
 			try {
 				return await fn();
 			} catch (error) {
-				lastError = error instanceof Error ? error : new Error(String(error));
+				lastError = toError(error);
 
 				ErrorHandler.log(
 					new DiscordImageError(
@@ -411,6 +493,7 @@ export class RetryHandler {
 						"RETRY_ATTEMPT_FAILED",
 						500,
 						{ attempt, maxAttempts, context, originalError: lastError.message },
+						lastError,
 					),
 					"warn",
 				);
@@ -438,7 +521,6 @@ export class RetryHandler {
 			}
 		}
 
-		// All retries failed, throw the last error
 		if (lastError instanceof DiscordImageError) {
 			throw lastError;
 		}
@@ -448,6 +530,7 @@ export class RetryHandler {
 			"MAX_RETRIES_EXCEEDED",
 			500,
 			{ maxAttempts, context, lastError: lastError.message },
+			lastError,
 		);
 	}
 }

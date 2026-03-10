@@ -1,6 +1,8 @@
 /** @format */
 
-import { get } from "node:https";
+import { readFileSync, statSync } from "node:fs";
+import { get as httpGet } from "node:http";
+import { get as httpsGet } from "node:https";
 import type { ImageInput } from "../types";
 import type { NodeCanvasRenderingContext2D } from "./canvas-compat";
 import {
@@ -11,18 +13,19 @@ import {
 	ValidationError,
 } from "./errors";
 
+const MAX_IMAGE_SIZE = 50 * 1024 * 1024; // 50MB
+const DATA_URL_PREFIX = "data:image/";
+
 export async function validateURL(
 	url: ImageInput,
 	timeout: number = 30000,
 ): Promise<Buffer | null> {
 	return ErrorHandler.withErrorHandling(
 		async () => {
-			// Validate input
 			if (!url) {
 				throw new ValidationError("URL or buffer is required", "url", url);
 			}
 
-			// If it's already a buffer, validate and return it
 			if (Buffer.isBuffer(url)) {
 				if (url.length === 0) {
 					throw new ValidationError(
@@ -31,47 +34,125 @@ export async function validateURL(
 						"empty buffer",
 					);
 				}
+				if (url.length > MAX_IMAGE_SIZE) {
+					throw new ValidationError(
+						`Image too large (> ${MAX_IMAGE_SIZE / 1024 / 1024}MB)`,
+						"fileSize",
+						url.length,
+					);
+				}
 				return url;
 			}
 
-			// Validate URL format
 			ErrorHandler.validateRequired(url, "url", "string");
+			const input = url.trim();
 
-			if (!url.startsWith("https://") && !url.startsWith("http://")) {
-				throw new ValidationError(
-					"URL must start with https:// or http://",
-					"url",
-					url,
+			if (input.startsWith(DATA_URL_PREFIX)) {
+				return decodeImageDataUrl(input);
+			}
+
+			if (input.startsWith("https://") || input.startsWith("http://")) {
+				if (input.startsWith("http://")) {
+					ErrorHandler.log(
+						new ValidationError(
+							"HTTP URLs are deprecated, please use HTTPS",
+							"url",
+							input,
+						),
+						"warn",
+					);
+				}
+
+				return await RetryHandler.withRetry(
+					() => fetchUrlWithTimeout(input, timeout),
+					{
+						maxAttempts: 3,
+						baseDelay: 1000,
+						context: `fetchImage(${input})`,
+						retryCondition: (error) =>
+							error instanceof NetworkError && error.statusCode >= 500,
+					},
 				);
 			}
 
-			// Prefer HTTPS
-			if (!url.startsWith("https://")) {
-				ErrorHandler.log(
-					new ValidationError(
-						"HTTP URLs are deprecated, please use HTTPS",
-						"url",
-						url,
-					),
-					"warn",
-				);
-			}
-
-			// Use retry mechanism for network requests
-			return await RetryHandler.withRetry(
-				() => fetchUrlWithTimeout(url.toString(), timeout),
-				{
-					maxAttempts: 3,
-					baseDelay: 1000,
-					context: `fetchImage(${url})`,
-					retryCondition: (error) =>
-						error instanceof NetworkError && error.statusCode >= 500,
-				},
-			);
+			return readLocalImageFile(input);
 		},
 		"validateURL",
 		null,
 	);
+}
+
+function decodeImageDataUrl(dataUrl: string): Buffer {
+	const commaIndex = dataUrl.indexOf(",");
+	if (commaIndex === -1) {
+		throw new ValidationError(
+			"Invalid data URL format",
+			"url",
+			"missing comma",
+		);
+	}
+
+	const meta = dataUrl.slice(0, commaIndex).toLowerCase();
+	const payload = dataUrl.slice(commaIndex + 1);
+	const isBase64 = meta.includes(";base64");
+	const decoded = isBase64
+		? Buffer.from(payload, "base64")
+		: Buffer.from(decodeURIComponent(payload), "utf8");
+
+	if (decoded.length === 0) {
+		throw new ValidationError(
+			"Data URL contains empty image data",
+			"url",
+			"empty",
+		);
+	}
+
+	if (decoded.length > MAX_IMAGE_SIZE) {
+		throw new ValidationError(
+			`Image too large (> ${MAX_IMAGE_SIZE / 1024 / 1024}MB)`,
+			"fileSize",
+			decoded.length,
+		);
+	}
+
+	return decoded;
+}
+
+function readLocalImageFile(filePath: string): Buffer {
+	try {
+		const stats = statSync(filePath);
+		if (!stats.isFile()) {
+			throw new ValidationError("Path is not a file", "url", filePath);
+		}
+
+		if (stats.size <= 0) {
+			throw new ValidationError("File is empty", "url", filePath);
+		}
+
+		if (stats.size > MAX_IMAGE_SIZE) {
+			throw new ValidationError(
+				`Image too large (> ${MAX_IMAGE_SIZE / 1024 / 1024}MB)`,
+				"fileSize",
+				stats.size,
+			);
+		}
+
+		return readFileSync(filePath);
+	} catch (error) {
+		if (error instanceof ValidationError) {
+			throw error;
+		}
+
+		if (error instanceof Error) {
+			throw new ValidationError(
+				"Input must be an image URL, data URL, buffer, or readable local file path",
+				"url",
+				`${filePath} (${error.message})`,
+			);
+		}
+
+		throw error;
+	}
 }
 
 /**
@@ -82,7 +163,6 @@ async function fetchUrlWithTimeout(
 	timeout: number,
 ): Promise<Buffer> {
 	return new Promise<Buffer>((resolve, reject) => {
-		// Set up timeout
 		const timeoutId = setTimeout(() => {
 			reject(
 				new TimeoutError(
@@ -94,24 +174,23 @@ async function fetchUrlWithTimeout(
 		}, timeout);
 
 		const fetchWithRedirects = (currentUrl: string, redirectCount = 0) => {
-			// Prevent too many redirects
 			if (redirectCount > 10) {
 				clearTimeout(timeoutId);
 				reject(new NetworkError("Too many redirects (>10)", currentUrl, 310));
 				return;
 			}
 
-			const req = get(currentUrl, (response) => {
+			const getter = currentUrl.startsWith("http://") ? httpGet : httpsGet;
+			const req = getter(currentUrl, (response) => {
 				const statusCode = response.statusCode || 0;
 
-				// Handle redirects (3xx status codes)
 				if (statusCode >= 300 && statusCode < 400) {
 					const location = response.headers.location;
 					if (!location) {
 						clearTimeout(timeoutId);
 						reject(
 							new NetworkError(
-								`Redirect response without location header`,
+								"Redirect response without location header",
 								currentUrl,
 								statusCode,
 							),
@@ -119,7 +198,6 @@ async function fetchUrlWithTimeout(
 						return;
 					}
 
-					// Handle relative URLs in location header
 					const redirectUrl = location.startsWith("http")
 						? location
 						: new URL(location, currentUrl).toString();
@@ -137,11 +215,9 @@ async function fetchUrlWithTimeout(
 					return;
 				}
 
-				// Handle error status codes
 				if (statusCode < 200 || statusCode >= 300) {
 					clearTimeout(timeoutId);
 
-					// Special handling for Discord CDN URLs in tests
 					if (currentUrl.includes("cdn.discordapp.com") && statusCode === 404) {
 						ErrorHandler.log(
 							new NetworkError(
@@ -151,7 +227,7 @@ async function fetchUrlWithTimeout(
 							),
 							"warn",
 						);
-						resolve(Buffer.from([])); // Return empty buffer for tests
+						resolve(Buffer.from([]));
 						return;
 					}
 
@@ -165,12 +241,10 @@ async function fetchUrlWithTimeout(
 					return;
 				}
 
-				// Validate content type
 				const contentType = response.headers["content-type"];
-				if (!contentType || !isImageContentType(contentType)) {
+				if (contentType && !isImageContentType(contentType)) {
 					clearTimeout(timeoutId);
 
-					// Special handling for Discord CDN
 					if (currentUrl.includes("cdn.discordapp.com")) {
 						ErrorHandler.log(
 							new ValidationError(
@@ -180,7 +254,7 @@ async function fetchUrlWithTimeout(
 							),
 							"warn",
 						);
-						resolve(Buffer.from([])); // Return empty buffer for tests
+						resolve(Buffer.from([]));
 						return;
 					}
 
@@ -194,26 +268,25 @@ async function fetchUrlWithTimeout(
 					return;
 				}
 
-				// Collect response data
 				const chunks: Buffer[] = [];
 				let totalSize = 0;
-				const maxSize = 50 * 1024 * 1024; // 50MB limit
 
-				response.on("data", (chunk: Buffer) => {
-					totalSize += chunk.length;
-					if (totalSize > maxSize) {
+				response.on("data", (chunk: Buffer | Uint8Array) => {
+					const data = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+					totalSize += data.length;
+					if (totalSize > MAX_IMAGE_SIZE) {
 						clearTimeout(timeoutId);
 						req.destroy();
 						reject(
 							new ValidationError(
-								`Image too large (>${maxSize / 1024 / 1024}MB)`,
+								`Image too large (> ${MAX_IMAGE_SIZE / 1024 / 1024}MB)`,
 								"fileSize",
 								totalSize,
 							),
 						);
 						return;
 					}
-					chunks.push(chunk);
+					chunks.push(data);
 				});
 
 				response.on("end", () => {
@@ -241,7 +314,6 @@ async function fetchUrlWithTimeout(
 			req.on("error", (error) => {
 				clearTimeout(timeoutId);
 
-				// Special handling for Discord CDN errors in tests
 				if (currentUrl.includes("cdn.discordapp.com")) {
 					ErrorHandler.log(
 						new NetworkError(
@@ -250,14 +322,13 @@ async function fetchUrlWithTimeout(
 						),
 						"warn",
 					);
-					resolve(Buffer.from([])); // Return empty buffer for tests
+					resolve(Buffer.from([]));
 					return;
 				}
 
 				reject(new NetworkError(`Request error: ${error.message}`, currentUrl));
 			});
 
-			// Set timeout for the request itself
 			req.setTimeout(timeout, () => {
 				req.destroy();
 				reject(
@@ -315,9 +386,10 @@ export function applyText(
 	font: string,
 ): string {
 	const ctx = canvas.getContext("2d");
+	let fontSize = Math.max(1, defaultFontSize);
 	do {
-		ctx.font = `${defaultFontSize--}px ${font}`;
-	} while (ctx.measureText(text).width > width);
+		ctx.font = `${fontSize--}px ${font}`;
+	} while (fontSize > 1 && ctx.measureText(text).width > width);
 	return ctx.font;
 }
 
@@ -335,7 +407,9 @@ export function wrapText(
 	if (ctx.measureText(text).width < maxWidth) return [text];
 	if (ctx.measureText("W").width > maxWidth) return null;
 
-	const words = text.split(" ");
+	const words = text.split(" ").filter(Boolean);
+	if (words.length === 0) return [text];
+
 	const lines: string[] = [];
 	let line = "";
 

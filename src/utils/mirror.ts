@@ -2,7 +2,9 @@
 
 import { Jimp } from "jimp";
 import type { ImageInput } from "../types";
+import { ErrorHandler, ImageProcessingError, ValidationError } from "./errors";
 import { validateURL } from "./utils";
+
 export default class Mirror {
 	/**
 	 * Mirrors an image horizontally (or vertically)
@@ -16,22 +18,52 @@ export default class Mirror {
 		horizontal = true,
 		vertical = false,
 	): Promise<Buffer> {
-		if (!image) {
-			throw new Error("You must provide an image as the first argument.");
-		}
+		return ErrorHandler.withErrorHandling(async () => {
+			ErrorHandler.validateRequired(image, "image");
+			ErrorHandler.validateRequired(horizontal, "horizontal", "boolean");
+			ErrorHandler.validateRequired(vertical, "vertical", "boolean");
 
-		const isValid = await validateURL(image);
-		if (!isValid) {
-			throw new Error("You must provide a valid image URL or buffer.");
-		}
+			if (!horizontal && !vertical) {
+				throw new ValidationError(
+					"At least one mirror direction must be enabled",
+					"horizontal|vertical",
+					{ horizontal, vertical },
+				);
+			}
 
-		// Use Jimp's read function to load the image.
-		const jimpImage = await Jimp.read(image);
+			const imageBuffer = await validateURL(image);
+			if (!imageBuffer) {
+				throw new ValidationError("Failed to load image", "image", image);
+			}
 
-		// Flip the image horizontally and/or vertically.
-		jimpImage.flip({ horizontal, vertical });
+			try {
+				const jimpImage = await Jimp.read(imageBuffer);
+				jimpImage.flip({ horizontal, vertical });
 
-		const buffer = await jimpImage.getBuffer("image/png");
-		return buffer;
+				const buffer = await jimpImage.getBuffer("image/png");
+				if (!buffer || buffer.length === 0) {
+					throw new ImageProcessingError(
+						"Generated image buffer is empty",
+						"mirror export",
+					);
+				}
+
+				return buffer;
+			} catch (error) {
+				if (error instanceof ImageProcessingError) {
+					throw error;
+				}
+
+				if (error instanceof Error) {
+					throw new ImageProcessingError(
+						`Failed to mirror image: ${error.message}`,
+						"mirror",
+						{ horizontal, vertical },
+					);
+				}
+
+				throw error;
+			}
+		}, "mirror utility");
 	}
 }
