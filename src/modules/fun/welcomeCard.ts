@@ -1,6 +1,17 @@
 import type { ImageInput } from "../../types";
+import type { NodeCanvasRenderingContext2D } from "../../utils/canvas-compat";
 import { createCanvas, loadImage } from "../../utils/canvas-compat";
+import {
+	ErrorHandler,
+	ImageProcessingError,
+	ValidationError,
+} from "../../utils/errors";
 import { validateURL } from "../../utils/utils";
+
+export interface WelcomeCardMetaItem {
+	label: string;
+	value: string;
+}
 
 // Interface for welcome card options
 export interface WelcomeCardOptions {
@@ -11,6 +22,7 @@ export interface WelcomeCardOptions {
 	background?: ImageInput;
 	theme?: WelcomeTheme;
 	message?: string;
+	meta?: WelcomeCardMetaItem[];
 	customization?: {
 		textColor?: string;
 		borderColor?: string;
@@ -90,147 +102,272 @@ const THEMES = {
 export const welcomeCard = async (
 	options: WelcomeCardOptions,
 ): Promise<Buffer> => {
-	if (!options || !options.username || !options.avatar) {
-		throw new Error("You must provide a username and avatar.");
-	}
-
-	// Validate avatar URL
-	const isValid = await validateURL(options.avatar);
-	if (!isValid) {
-		throw new Error("You must provide a valid avatar URL or buffer.");
-	}
-
-	// Set default theme if not provided
-	const theme = options.theme || "default";
-	const themeConfig = { ...THEMES[theme] };
-
-	// Apply custom styles if provided
-	if (options.customization) {
-		if (options.customization.backgroundColor)
-			themeConfig.backgroundColor = options.customization.backgroundColor;
-		if (options.customization.textColor)
-			themeConfig.textColor = options.customization.textColor;
-		if (options.customization.borderColor)
-			themeConfig.borderColor = options.customization.borderColor;
-		if (options.customization.avatarBorderColor)
-			themeConfig.avatarBorderColor = options.customization.avatarBorderColor;
-		if (options.customization.font)
-			themeConfig.font = options.customization.font;
-		if (options.customization.fontSize)
-			themeConfig.fontSize = options.customization.fontSize;
-	}
-
-	// Set default message if not provided
-	let message = options.message || "Welcome to the server!";
-	if (options.servername && !options.message) {
-		message = `Welcome to ${options.servername}!`;
-	}
-
-	try {
-		// Create canvas
-		const canvas = createCanvas(800, 300);
-		const ctx = canvas.getContext("2d");
-
-		// Draw background
-		ctx.fillStyle = "#000000";
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-		// If custom background is provided, draw it
-		if (options.background) {
-			try {
-				const backgroundImage = await loadImage(options.background);
-				ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
-
-				// Add overlay to ensure text readability
-				ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-				ctx.fillRect(0, 0, canvas.width, canvas.height);
-			} catch (_error) {
-				console.error(
-					"Failed to load background image, using default background",
-				);
-			}
-		}
-
-		// Draw card background
-		ctx.fillStyle = themeConfig.backgroundColor;
-		ctx.fillRect(25, 25, canvas.width - 50, canvas.height - 50);
-
-		// Draw border
-		ctx.strokeStyle = themeConfig.borderColor;
-		ctx.lineWidth = 4;
-		ctx.strokeRect(25, 25, canvas.width - 50, canvas.height - 50);
-
-		// Load and draw avatar with glow effect
-		const avatar = await loadImage(options.avatar);
-		const avatarSize = 120;
-		const avatarX = 90;
-		const avatarY = canvas.height / 2;
-
-		// Draw avatar glow
-		ctx.save();
-		ctx.shadowColor = themeConfig.avatarBorderColor;
-		ctx.shadowBlur = 15;
-		ctx.beginPath();
-		ctx.arc(avatarX, avatarY, avatarSize / 2, 0, Math.PI * 2);
-		ctx.closePath();
-		ctx.clip();
-		ctx.drawImage(
-			avatar,
-			avatarX - avatarSize / 2,
-			avatarY - avatarSize / 2,
-			avatarSize,
-			avatarSize,
-		);
-		ctx.restore();
-
-		// Draw avatar border
-		ctx.beginPath();
-		ctx.arc(avatarX, avatarY, avatarSize / 2 + 3, 0, Math.PI * 2);
-		ctx.strokeStyle = themeConfig.avatarBorderColor;
-		ctx.lineWidth = 4;
-		ctx.stroke();
-		ctx.closePath();
-
-		// Set text style
-		ctx.textAlign = "left";
-		ctx.fillStyle = themeConfig.textColor;
-		ctx.font = `bold ${themeConfig.fontSize}px ${themeConfig.font}`;
-
-		// Draw username
-		ctx.fillText(options.username, 220, 130);
-
-		// Draw welcome message
-		ctx.font = `${themeConfig.fontSize - 4}px ${themeConfig.font}`;
-		ctx.fillText(message, 220, 170);
-
-		// If member count is provided, draw it
-		if (options.memberCount) {
-			ctx.font = `${themeConfig.fontSize - 8}px ${themeConfig.font}`;
-			ctx.fillText(`You are member #${options.memberCount}`, 220, 210);
-		}
-
-		// Draw tech-themed elements for tech theme
-		if (theme === "tech") {
-			drawTechElements(
-				ctx,
-				canvas.width,
-				canvas.height,
-				themeConfig.borderColor,
+	return ErrorHandler.withErrorHandling(async () => {
+		if (!options || !options.username || !options.avatar) {
+			throw new ValidationError(
+				"You must provide a username and avatar.",
+				"options",
 			);
 		}
 
-		// Return the processed image
-		return canvas.toBuffer("image/png");
-	} catch (error) {
-		throw new Error(`Failed to create welcome card: ${error}`);
-	}
+		const avatarBuffer = await validateURL(options.avatar);
+		if (!avatarBuffer) {
+			throw new ValidationError("Failed to load avatar image", "avatar");
+		}
+
+		const theme = options.theme || "default";
+		const themeConfig = { ...THEMES[theme] };
+
+		if (options.customization) {
+			if (options.customization.backgroundColor)
+				themeConfig.backgroundColor = options.customization.backgroundColor;
+			if (options.customization.textColor)
+				themeConfig.textColor = options.customization.textColor;
+			if (options.customization.borderColor)
+				themeConfig.borderColor = options.customization.borderColor;
+			if (options.customization.avatarBorderColor)
+				themeConfig.avatarBorderColor = options.customization.avatarBorderColor;
+			if (options.customization.font)
+				themeConfig.font = options.customization.font;
+			if (options.customization.fontSize)
+				themeConfig.fontSize = options.customization.fontSize;
+		}
+
+		let message = options.message || "Welcome to the server!";
+		if (options.servername && !options.message) {
+			message = `Welcome to ${options.servername}!`;
+		}
+		const metaItems = Array.isArray(options.meta)
+			? options.meta
+					.filter(
+						(item): item is WelcomeCardMetaItem =>
+							!!item &&
+							typeof item.label === "string" &&
+							typeof item.value === "string" &&
+							item.label.trim().length > 0 &&
+							item.value.trim().length > 0,
+					)
+					.slice(0, 3)
+			: [];
+
+		try {
+			const canvas = createCanvas(800, 300);
+			const ctx = canvas.getContext("2d");
+			const width = canvas.width;
+			const height = canvas.height;
+			const accentColor = themeConfig.avatarBorderColor;
+
+			ctx.fillStyle = "#05070c";
+			ctx.fillRect(0, 0, width, height);
+
+			if (options.background) {
+				try {
+					const backgroundBuffer = await validateURL(options.background);
+					if (backgroundBuffer) {
+						const backgroundImage = await loadImage(backgroundBuffer);
+						drawCoverImage(ctx, backgroundImage, width, height);
+						const imageOverlay = ctx.createLinearGradient(0, 0, width, height);
+						imageOverlay.addColorStop(0, "rgba(5, 8, 18, 0.58)");
+						imageOverlay.addColorStop(1, "rgba(5, 8, 18, 0.82)");
+						ctx.fillStyle = imageOverlay;
+						ctx.fillRect(0, 0, width, height);
+					}
+				} catch (_error) {
+					// Keep default background on background image failures.
+				}
+			}
+
+			drawAmbientGlow(ctx, 130, 80, 220, accentColor, 0.26);
+			drawAmbientGlow(ctx, width - 120, height - 70, 260, themeConfig.borderColor, 0.18);
+
+			const shellX = 24;
+			const shellY = 24;
+			const shellWidth = width - shellX * 2;
+			const shellHeight = height - shellY * 2;
+			const shellRadius = 28;
+
+			const shellGradient = ctx.createLinearGradient(shellX, shellY, width, height);
+			shellGradient.addColorStop(0, addAlpha(themeConfig.backgroundColor, 0.88));
+			shellGradient.addColorStop(1, "rgba(10, 14, 24, 0.84)");
+			ctx.fillStyle = shellGradient;
+			roundedRect(ctx, shellX, shellY, shellWidth, shellHeight, shellRadius);
+			ctx.fill();
+
+			ctx.strokeStyle = addAlpha(themeConfig.borderColor, 0.45);
+			ctx.lineWidth = 1.5;
+			roundedRect(ctx, shellX, shellY, shellWidth, shellHeight, shellRadius);
+			ctx.stroke();
+			drawThemeAccents(ctx, theme, width, height, themeConfig);
+
+			const leftPanelX = 42;
+			const leftPanelY = 42;
+			const leftPanelWidth = 180;
+			const leftPanelHeight = shellHeight - 36;
+			const rightPanelX = 238;
+			const rightPanelY = 42;
+			const rightPanelWidth = width - rightPanelX - 42;
+			const rightPanelHeight = shellHeight - 36;
+
+			ctx.fillStyle = "rgba(255, 255, 255, 0.045)";
+			roundedRect(ctx, leftPanelX, leftPanelY, leftPanelWidth, leftPanelHeight, 22);
+			ctx.fill();
+			roundedRect(ctx, rightPanelX, rightPanelY, rightPanelWidth, rightPanelHeight, 22);
+			ctx.fill();
+
+			const avatar = await loadImage(avatarBuffer);
+			const avatarSize = 126;
+			const avatarX = leftPanelX + leftPanelWidth / 2;
+			const avatarY = 132;
+
+			drawAmbientGlow(ctx, avatarX, avatarY, 90, themeConfig.avatarBorderColor, 0.35);
+			ctx.save();
+			ctx.beginPath();
+			ctx.arc(avatarX, avatarY, avatarSize / 2 + 10, 0, Math.PI * 2);
+			ctx.fillStyle = "rgba(255, 255, 255, 0.06)";
+			ctx.fill();
+			ctx.restore();
+
+			ctx.save();
+			ctx.beginPath();
+			ctx.arc(avatarX, avatarY, avatarSize / 2, 0, Math.PI * 2);
+			ctx.closePath();
+			ctx.clip();
+			ctx.drawImage(
+				avatar,
+				avatarX - avatarSize / 2,
+				avatarY - avatarSize / 2,
+				avatarSize,
+				avatarSize,
+			);
+			ctx.restore();
+
+			ctx.beginPath();
+			ctx.arc(avatarX, avatarY, avatarSize / 2 + 6, 0, Math.PI * 2);
+			ctx.strokeStyle = addAlpha(themeConfig.avatarBorderColor, 0.95);
+			ctx.lineWidth = 4;
+			ctx.stroke();
+
+			ctx.beginPath();
+			ctx.arc(avatarX, avatarY, avatarSize / 2 + 13, 0, Math.PI * 2);
+			ctx.strokeStyle = addAlpha(themeConfig.avatarBorderColor, 0.22);
+			ctx.lineWidth = 1.5;
+			ctx.stroke();
+
+			ctx.textAlign = "center";
+			ctx.fillStyle = themeConfig.textColor;
+			ctx.font = `700 14px ${themeConfig.font}`;
+			ctx.fillText("NEW MEMBER", avatarX, 232);
+			ctx.font = `600 18px ${themeConfig.font}`;
+			ctx.fillStyle = addAlpha(themeConfig.textColor, 0.82);
+			ctx.fillText(`@${truncateText(options.username, 14)}`, avatarX, 252);
+
+			const headerY = 84;
+			drawPill(ctx, rightPanelX + 20, headerY - 26, 134, 30, addAlpha(themeConfig.borderColor, 0.18), addAlpha(themeConfig.borderColor, 0.35));
+			ctx.textAlign = "center";
+			ctx.font = `700 14px ${themeConfig.font}`;
+			ctx.fillStyle = addAlpha(themeConfig.textColor, 0.88);
+			ctx.fillText("WELCOME ABOARD", rightPanelX + 87, headerY - 7);
+
+			ctx.textAlign = "left";
+			ctx.fillStyle = themeConfig.textColor;
+			ctx.font = `700 ${themeConfig.fontSize + 10}px ${themeConfig.font}`;
+			const title = fitText(
+				ctx,
+				options.username,
+				rightPanelWidth - 42,
+				themeConfig.fontSize + 10,
+				themeConfig.font,
+				24,
+				true,
+			);
+			ctx.fillText(title, rightPanelX + 20, headerY + 36);
+
+			const hasMeta = metaItems.length > 0;
+			const contentBottomY = hasMeta ? 214 : 224;
+
+			ctx.font = `${themeConfig.fontSize - 2}px ${themeConfig.font}`;
+			ctx.fillStyle = addAlpha(themeConfig.textColor, 0.88);
+			const messageLines = wrapText(
+				ctx,
+				message,
+				rightPanelWidth - 48,
+				hasMeta ? 2 : 3,
+			);
+			messageLines.forEach((line, index) => {
+				ctx.fillText(line, rightPanelX + 20, 160 + index * 28);
+			});
+
+			if (options.servername && !hasMeta) {
+				ctx.font = `600 18px ${themeConfig.font}`;
+				ctx.fillStyle = addAlpha(themeConfig.textColor, 0.72);
+				ctx.fillText(
+					`Server: ${fitText(ctx, options.servername, rightPanelWidth - 48, 18, themeConfig.font, 14)}`,
+					rightPanelX + 20,
+					contentBottomY + 18,
+				);
+			}
+
+			if (hasMeta) {
+				const footerY = rightPanelY + rightPanelHeight - 70;
+				const gap = 14;
+				const availableWidth = rightPanelWidth - 40;
+				const totalGap = gap * (metaItems.length - 1);
+				const badgeWidth = Math.floor((availableWidth - totalGap) / metaItems.length);
+
+				metaItems.forEach((item, index) => {
+					drawInfoBadge(
+						ctx,
+						rightPanelX + 20 + index * (badgeWidth + gap),
+						footerY,
+						badgeWidth,
+						50,
+						item.label,
+						item.value,
+						themeConfig,
+					);
+				});
+			}
+
+			if (theme === "tech") {
+				drawTechElements(
+					ctx,
+					canvas.width,
+					canvas.height,
+					themeConfig.borderColor,
+				);
+			}
+
+			const buffer = canvas.toBuffer("image/png");
+			if (!buffer || buffer.length === 0) {
+				throw new ImageProcessingError(
+					"Generated image buffer is empty",
+					"welcomeCard export",
+				);
+			}
+			return buffer;
+		} catch (error) {
+			if (
+				error instanceof ValidationError ||
+				error instanceof ImageProcessingError
+			) {
+				throw error;
+			}
+			if (error instanceof Error) {
+				throw new ImageProcessingError(
+					`Failed to create welcome card: ${error.message}`,
+					"welcomeCard",
+				);
+			}
+			throw error;
+		}
+	}, "welcomeCard generator");
 };
 
 /**
  * Draws tech-themed decorative elements for the tech theme
  */
 function drawTechElements(
-	ctx: any,
+	ctx: NodeCanvasRenderingContext2D,
 	width: number,
 	height: number,
 	color: string,
@@ -276,6 +413,359 @@ function drawTechElements(
 	}
 }
 
+function roundedRect(
+	ctx: NodeCanvasRenderingContext2D,
+	x: number,
+	y: number,
+	width: number,
+	height: number,
+	radius: number,
+) {
+	ctx.beginPath();
+	ctx.moveTo(x + radius, y);
+	ctx.lineTo(x + width - radius, y);
+	ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+	ctx.lineTo(x + width, y + height - radius);
+	ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+	ctx.lineTo(x + radius, y + height);
+	ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+	ctx.lineTo(x, y + radius);
+	ctx.quadraticCurveTo(x, y, x + radius, y);
+	ctx.closePath();
+}
+
+function addAlpha(color: string, alpha: number): string {
+	if (color.startsWith("rgba(")) {
+		return color.replace(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/, `rgba($1, $2, $3, ${alpha})`);
+	}
+
+	if (color.startsWith("rgb(")) {
+		return color.replace(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/, `rgba($1, $2, $3, ${alpha})`);
+	}
+
+	if (color.startsWith("#")) {
+		const hex = color.slice(1);
+		const normalized =
+			hex.length === 3
+				? hex
+						.split("")
+						.map((char) => char + char)
+						.join("")
+				: hex;
+		const r = Number.parseInt(normalized.slice(0, 2), 16);
+		const g = Number.parseInt(normalized.slice(2, 4), 16);
+		const b = Number.parseInt(normalized.slice(4, 6), 16);
+		return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+	}
+
+	return color;
+}
+
+function drawAmbientGlow(
+	ctx: NodeCanvasRenderingContext2D,
+	x: number,
+	y: number,
+	radius: number,
+	color: string,
+	alpha: number,
+) {
+	const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+	gradient.addColorStop(0, addAlpha(color, alpha));
+	gradient.addColorStop(1, addAlpha(color, 0));
+	ctx.fillStyle = gradient;
+	ctx.beginPath();
+	ctx.arc(x, y, radius, 0, Math.PI * 2);
+	ctx.fill();
+}
+
+function drawCoverImage(
+	ctx: NodeCanvasRenderingContext2D,
+	image: { width: number; height: number },
+	width: number,
+	height: number,
+) {
+	const scale = Math.max(width / image.width, height / image.height);
+	const drawWidth = image.width * scale;
+	const drawHeight = image.height * scale;
+	const drawX = (width - drawWidth) / 2;
+	const drawY = (height - drawHeight) / 2;
+	ctx.drawImage(image as any, drawX, drawY, drawWidth, drawHeight);
+}
+
+function truncateText(text: string, maxLength: number): string {
+	return text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
+}
+
+function fitText(
+	ctx: NodeCanvasRenderingContext2D,
+	text: string,
+	maxWidth: number,
+	startSize: number,
+	font: string,
+	minSize: number,
+	bold = false,
+): string {
+	let size = startSize;
+	while (size >= minSize) {
+		ctx.font = `${bold ? "700" : "400"} ${size}px ${font}`;
+		if (ctx.measureText(text).width <= maxWidth) return text;
+		size -= 1;
+	}
+	return truncateText(text, Math.max(8, Math.floor(maxWidth / 14)));
+}
+
+function wrapText(
+	ctx: NodeCanvasRenderingContext2D,
+	text: string,
+	maxWidth: number,
+	maxLines: number,
+): string[] {
+	const words = text.split(/\s+/).filter(Boolean);
+	if (words.length === 0) return [text];
+
+	const lines: string[] = [];
+	let current = "";
+
+	for (const word of words) {
+		const candidate = current ? `${current} ${word}` : word;
+		if (ctx.measureText(candidate).width <= maxWidth) {
+			current = candidate;
+			continue;
+		}
+
+		if (current) {
+			lines.push(current);
+			if (lines.length === maxLines - 1) {
+				current = word;
+				break;
+			}
+		}
+
+		current = word;
+	}
+
+	if (current) {
+		lines.push(current);
+	}
+
+	return lines.slice(0, maxLines).map((line, index, array) => {
+		if (index !== array.length - 1) return line;
+		if (ctx.measureText(line).width <= maxWidth) return line;
+		let trimmed = line;
+		while (trimmed.length > 1 && ctx.measureText(`${trimmed}…`).width > maxWidth) {
+			trimmed = trimmed.slice(0, -1);
+		}
+		return `${trimmed}…`;
+	});
+}
+
+function drawPill(
+	ctx: NodeCanvasRenderingContext2D,
+	x: number,
+	y: number,
+	width: number,
+	height: number,
+	fill: string,
+	stroke: string,
+) {
+	roundedRect(ctx, x, y, width, height, height / 2);
+	ctx.fillStyle = fill;
+	ctx.fill();
+	ctx.strokeStyle = stroke;
+	ctx.lineWidth = 1;
+	ctx.stroke();
+}
+
+function drawInfoBadge(
+	ctx: NodeCanvasRenderingContext2D,
+	x: number,
+	y: number,
+	width: number,
+	height: number,
+	label: string,
+	value: string,
+	themeConfig: {
+		textColor: string;
+		borderColor: string;
+		backgroundColor: string;
+		font: string;
+	},
+) {
+	roundedRect(ctx, x, y, width, height, 16);
+	ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+	ctx.fill();
+	ctx.strokeStyle = addAlpha(themeConfig.borderColor, 0.25);
+	ctx.lineWidth = 1;
+	ctx.stroke();
+
+	ctx.fillStyle = addAlpha(themeConfig.textColor, 0.6);
+	ctx.font = `700 11px ${themeConfig.font}`;
+	ctx.fillText(label, x + 14, y + 15);
+
+	ctx.fillStyle = themeConfig.textColor;
+	const { text: fittedValue, size } = fitTextWithSize(
+		ctx,
+		value,
+		width - 28,
+		18,
+		themeConfig.font,
+		11,
+		true,
+	);
+	ctx.font = `700 ${size}px ${themeConfig.font}`;
+	ctx.fillText(fittedValue, x + 14, y + 35);
+}
+
+function drawMetaLine(
+	ctx: NodeCanvasRenderingContext2D,
+	x: number,
+	y: number,
+	maxWidth: number,
+	items: Array<{ label: string; value: string }>,
+	themeConfig: {
+		textColor: string;
+		borderColor: string;
+		backgroundColor: string;
+		font: string;
+	},
+) {
+	let cursorX = x;
+	const gap = 26;
+
+	for (const item of items) {
+		ctx.font = `600 15px ${themeConfig.font}`;
+		const labelText = `${item.label}: `;
+		const labelWidth = ctx.measureText(labelText).width;
+		const remainingWidth = maxWidth - (cursorX - x);
+		if (remainingWidth <= 60) break;
+
+		ctx.fillStyle = addAlpha(themeConfig.textColor, 0.56);
+		ctx.fillText(labelText, cursorX, y);
+		cursorX += labelWidth;
+
+		const valueBudget = Math.max(40, remainingWidth - labelWidth - gap);
+		const { text: fittedValue, size } = fitTextWithSize(
+			ctx,
+			item.value,
+			Math.min(valueBudget, item.label === "Theme" ? 80 : valueBudget),
+			15,
+			themeConfig.font,
+			12,
+			true,
+		);
+		ctx.font = `700 ${size}px ${themeConfig.font}`;
+		ctx.fillStyle = themeConfig.textColor;
+		ctx.fillText(fittedValue, cursorX, y);
+		cursorX += ctx.measureText(fittedValue).width + gap;
+	}
+}
+
+function fitTextWithSize(
+	ctx: NodeCanvasRenderingContext2D,
+	text: string,
+	maxWidth: number,
+	startSize: number,
+	font: string,
+	minSize: number,
+	bold = false,
+): { text: string; size: number } {
+	let size = startSize;
+	while (size >= minSize) {
+		ctx.font = `${bold ? "700" : "400"} ${size}px ${font}`;
+		if (ctx.measureText(text).width <= maxWidth) {
+			return { text, size };
+		}
+		size -= 1;
+	}
+
+	const fallbackSize = minSize;
+	ctx.font = `${bold ? "700" : "400"} ${fallbackSize}px ${font}`;
+	let trimmed = text;
+	while (trimmed.length > 1 && ctx.measureText(`${trimmed}…`).width > maxWidth) {
+		trimmed = trimmed.slice(0, -1);
+	}
+	return { text: `${trimmed}…`, size: fallbackSize };
+}
+
+function drawThemeAccents(
+	ctx: NodeCanvasRenderingContext2D,
+	theme: WelcomeTheme,
+	width: number,
+	height: number,
+	themeConfig: {
+		textColor: string;
+		borderColor: string;
+		backgroundColor: string;
+		avatarBorderColor: string;
+		font: string;
+		fontSize: number;
+	},
+) {
+	switch (theme) {
+		case "default": {
+			const gradient = ctx.createLinearGradient(0, 0, width, 0);
+			gradient.addColorStop(0, addAlpha(themeConfig.borderColor, 0));
+			gradient.addColorStop(0.5, addAlpha(themeConfig.borderColor, 0.18));
+			gradient.addColorStop(1, addAlpha(themeConfig.borderColor, 0));
+			ctx.fillStyle = gradient;
+			ctx.fillRect(40, 30, width - 80, 3);
+			break;
+		}
+		case "dark": {
+			ctx.strokeStyle = addAlpha(themeConfig.borderColor, 0.16);
+			for (let i = 0; i < 5; i += 1) {
+				ctx.beginPath();
+				ctx.arc(width - 110, 70, 28 + i * 14, 0.25, 1.15);
+				ctx.stroke();
+			}
+			break;
+		}
+		case "light": {
+			ctx.fillStyle = addAlpha(themeConfig.borderColor, 0.08);
+			for (let i = 0; i < 8; i += 1) {
+				ctx.beginPath();
+				ctx.arc(80 + i * 85, 44, 2, 0, Math.PI * 2);
+				ctx.fill();
+			}
+			break;
+		}
+		case "colorful": {
+			const gradient = ctx.createLinearGradient(0, 0, width, height);
+			gradient.addColorStop(0, addAlpha("#ff9800", 0.12));
+			gradient.addColorStop(0.5, addAlpha("#00d1ff", 0.04));
+			gradient.addColorStop(1, addAlpha("#ff4f9a", 0.12));
+			ctx.fillStyle = gradient;
+			ctx.beginPath();
+			ctx.moveTo(width - 220, 24);
+			ctx.lineTo(width - 24, 24);
+			ctx.lineTo(width - 24, 140);
+			ctx.closePath();
+			ctx.fill();
+			break;
+		}
+		case "minimal": {
+			ctx.strokeStyle = addAlpha(themeConfig.borderColor, 0.12);
+			ctx.lineWidth = 1;
+			ctx.beginPath();
+			ctx.moveTo(250, 150);
+			ctx.lineTo(width - 60, 150);
+			ctx.stroke();
+			break;
+		}
+		case "tech": {
+			ctx.strokeStyle = addAlpha(themeConfig.borderColor, 0.18);
+			ctx.lineWidth = 1;
+			for (let y = 44; y < height - 44; y += 8) {
+				ctx.beginPath();
+				ctx.moveTo(240, y);
+				ctx.lineTo(width - 50, y);
+				ctx.stroke();
+			}
+			break;
+		}
+	}
+}
+
 /**
  * Class-based API for the welcome card
  */
@@ -287,6 +777,7 @@ export class WelcomeCardBuilder {
 	private background?: ImageInput;
 	private theme: WelcomeTheme = "default";
 	private message?: string;
+	private meta?: WelcomeCardMetaItem[];
 	private customization: {
 		textColor?: string;
 		borderColor?: string;
@@ -309,6 +800,7 @@ export class WelcomeCardBuilder {
 			if (options.background) this.background = options.background;
 			if (options.theme) this.theme = options.theme;
 			if (options.message) this.message = options.message;
+			if (options.meta) this.meta = options.meta;
 			if (options.customization) this.customization = options.customization;
 		}
 	}
@@ -366,6 +858,23 @@ export class WelcomeCardBuilder {
 	 */
 	setMessage(message: string): WelcomeCardBuilder {
 		this.message = message;
+		return this;
+	}
+
+	/**
+	 * Set custom metadata items shown in the footer area
+	 */
+	setMeta(items: WelcomeCardMetaItem[]): WelcomeCardBuilder {
+		this.meta = items;
+		return this;
+	}
+
+	/**
+	 * Add a single metadata item shown in the footer area
+	 */
+	addMeta(label: string, value: string): WelcomeCardBuilder {
+		if (!this.meta) this.meta = [];
+		this.meta.push({ label, value });
 		return this;
 	}
 
@@ -433,6 +942,7 @@ export class WelcomeCardBuilder {
 			background: this.background,
 			theme: this.theme,
 			message: this.message,
+			meta: this.meta,
 			customization: this.customization,
 		});
 	}

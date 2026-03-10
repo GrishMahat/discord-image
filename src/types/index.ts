@@ -94,6 +94,11 @@ export interface WelcomeCardCustomization {
 	fontSize?: number;
 }
 
+export interface WelcomeCardMetaItem {
+	label: string;
+	value: string;
+}
+
 export interface WelcomeCardOptions {
 	username: string;
 	avatar: ImageInput;
@@ -102,6 +107,7 @@ export interface WelcomeCardOptions {
 	background?: ImageInput;
 	theme?: WelcomeTheme;
 	message?: string;
+	meta?: WelcomeCardMetaItem[];
 	customization?: WelcomeCardCustomization;
 }
 
