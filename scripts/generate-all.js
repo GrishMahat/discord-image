@@ -116,6 +116,7 @@ async function main() {
 		["jail", "png", () => dig.jail(ASSET_1)],
 		["heartbreaking", "png", () => dig.heartbreaking(ASSET_1)],
 		["facepalm", "png", () => dig.facepalm(ASSET_1)],
+		["securityCamera", "png", () => dig.securityCamera(ASSET_1, "CAM 03")],
 		["doubleStonk", "png", () => dig.doubleStonk(ASSET_1, ASSET_2)],
 		["confusedStonk", "png", () => dig.confusedStonk(ASSET_1)],
 		["deepfry", "png", () => dig.deepfry(ASSET_1)],
@@ -147,11 +148,30 @@ async function main() {
 					},
 				}),
 		],
+		[
+			"alwaysHasBeen",
+			"png",
+			() =>
+				dig.alwaysHasBeen({
+					planet: { text: "Every browser is" },
+					reveal: { text: "Chromium" },
+				}),
+		],
 		["drake", "png", () => dig.drake("Ship quick hacks", "Ship maintainable code")],
 		[
 			"distractedBoyfriend",
 			"png",
 			() => dig.distractedBoyfriend("legacy API", "me", "new API"),
+		],
+		[
+			"twoButtons",
+			"png",
+			() =>
+				dig.twoButtons(
+					"Ship quick",
+					"Ship clean",
+					"When product wants both by Friday",
+				),
 		],
 		[
 			"level",

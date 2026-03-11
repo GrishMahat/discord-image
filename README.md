@@ -131,6 +131,7 @@ async function makeAssets(image: string) {
 - `notStonk(image)`
 - `partyHat(image)`
 - `rip(image)`
+- `securityCamera(image, label?)`
 - `snyder(image)`
 - `stonk(image)`
 - `tatoo(image)`
@@ -142,8 +143,10 @@ async function makeAssets(image: string) {
 - `RankCard` as a compatibility alias of `level`
 - `welcomeCard(options)`
 - `WelcomeCardBuilder`
+- `alwaysHasBeen({ planet?, reveal?, ...options })`
 - `drake(text1, text2, options?)`
 - `distractedBoyfriend(girlfriend, boyfriend, newGirl, options?)`
+- `twoButtons(button1, button2, bottomText, options?)`
 - `Music(options)`
 - `Quote({ quote, author, gradient?, pattern? })`
 
@@ -177,6 +180,17 @@ const card = await welcomeCard({
     { label: "Role", value: "Member" },
     { label: "Joined", value: "Today" },
   ],
+});
+```
+
+## Always Has Been Example
+
+```ts
+import { alwaysHasBeen } from "discord-image-utils";
+
+const meme = await alwaysHasBeen({
+  planet: { text: "Every browser is" },
+  reveal: { text: "Chromium" },
 });
 ```
 
@@ -214,6 +228,32 @@ pnpm run test:gen-all:full
 - [docs/TYPES_AND_MODULES.md](./docs/TYPES_AND_MODULES.md)
 - [docs/level-card-examples.md](./docs/level-card-examples.md)
 - [docs/welcome-card-examples.md](./docs/welcome-card-examples.md)
+
+## FAQ
+
+### Why does this package exist, and why is it called `discord-image-utils`?
+
+This project started as a reimplementation of `discord-image` because that package was no longer maintained and I needed something I could keep extending for my own Discord bot. That is why the name stayed close to the original idea. Even though it is Discord-focused, most of the generators are just general image utilities, meme templates, and card generators, so you can still use them in other backend projects if they fit your use case.
+
+### Who is this for, and should I use this instead of a site like `imgflip.com`?
+
+This package was originally built for me and my own bot. If you just want to make a meme quickly, a site like [imgflip.com](https://imgflip.com/) is probably easier than using this library. This package is more useful if you want to generate images programmatically inside a Node.js backend, especially for a bot or automated workflow.
+
+### Is it production-ready, stable, and consistent?
+
+It is workable, and I use it in production for my own Discord bot, but I would not describe it as a polished general-purpose library yet. A lot of the codebase is still rough. The project started handwritten, then I used AI for some parts in the middle, and in some places that actually made the code quality worse. There is too much duplication, too many inconsistent patterns, and the API shape is not fully standardized, which is why some generators are simple while others are object-based. Older templates also tend to be more polished than newer ones because they have been exercised in production for longer. The plan is to clean up and progressively rewrite the source for better readability, maintainability, and more user customization.
+
+### Can I use this in the browser or frontend, and why do some generators return PNG while others return GIF?
+
+Browser/frontend use is not really supported. This package is built around Node.js image generation and native canvas dependencies, so it fits backend use much better. If you need it for a web app, the practical setup is to generate images on the backend and return them to the frontend. As for output format, static generators return PNG and animated ones return GIF. In the future I want output formats and customization to be more flexible, but right now each generator mostly returns the format that fits its behavior.
+
+### Will you add more memes or change the APIs?
+
+Probably yes to both. If you want a new meme or image generator, open a GitHub issue and ask for it. If the idea fits the project and is not too degenerate, I will probably add it. The API surface will also likely change in a future major rewrite so things can become more consistent and easier to customize.
+
+### What about performance, customization, copyright, and bug reports?
+
+Performance depends on the generator, the input image sizes, whether remote images have to be fetched, and how much compositing or animation work is involved, so some outputs will naturally feel slower than others. Some generators already let you customize text placement or styling, while others do not yet because that work is still being centralized. I do not claim copyright ownership over all bundled image assets/templates used in this repository. If you are a copyright holder and want an asset removed, contact me and I will remove it. If you find a broken template, bad text alignment, or another issue, open a GitHub issue. Node `>=16` is supported.
 
 ## License
 

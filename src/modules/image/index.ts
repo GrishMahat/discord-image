@@ -20,6 +20,7 @@ export { lisaPresentation } from "./lisaPresentation";
 export { notStonk } from "./notStonk";
 export { partyHat } from "./partyHat";
 export { rip } from "./rip";
+export { securityCamera } from "./securityCamera";
 export { snyder } from "./snyder";
 export { spank } from "./spank";
 export { stonk } from "./stonk";

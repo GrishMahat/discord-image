@@ -26,20 +26,25 @@ interface DistractedBoyfriendOptions {
 	fontSize?: number;
 	textColor?: string;
 	bold?: boolean;
+	positions?: Partial<{
+		newGirl: { x: number; y: number; maxWidth?: number };
+		boyfriend: { x: number; y: number; maxWidth?: number };
+		girlfriend: { x: number; y: number; maxWidth?: number };
+	}>;
 }
 
-const DEFAULT_OPTIONS: Required<DistractedBoyfriendOptions> = {
+const DEFAULT_OPTIONS = {
 	fontSize: 28,
 	textColor: "#FFFFFF",
 	bold: true,
-};
+} satisfies Pick<DistractedBoyfriendOptions, "fontSize" | "textColor" | "bold">;
 
 /**
  * Creates a Distracted Boyfriend meme
- * @param girlfriend - Text for the girlfriend (left)
- * @param boyfriend - Text for the boyfriend (center)
- * @param newGirl - Text for the other girl (right)
- * @param options - Optional text styling
+ * @param girlfriend - Text for the girlfriend on the right side of the meme
+ * @param boyfriend - Text for the boyfriend in the middle of the meme
+ * @param newGirl - Text for the new girl on the left side of the meme
+ * @param options - Optional text styling and manual label positions
  * @returns Promise<Buffer> - The generated meme image
  */
 export async function distractedBoyfriend(
@@ -72,10 +77,34 @@ export async function distractedBoyfriend(
 			ctx.strokeStyle = "#000000";
 			ctx.lineWidth = 3;
 
+			// Anchor each label to the visible subject in the stock template.
+			// These defaults can be overridden through `options.positions`
+			// when a caller wants exact manual placement per role.
+			// - newGirl: left foreground woman in red
+			// - boyfriend: middle man turning back
+			// - girlfriend: right woman reacting
+			const rolePositions = {
+				newGirl: {
+					x: settings.positions?.newGirl?.x ?? 300,
+					y: settings.positions?.newGirl?.y ?? 170,
+					maxWidth: settings.positions?.newGirl?.maxWidth ?? 230,
+				},
+				boyfriend: {
+					x: settings.positions?.boyfriend?.x ?? 665,
+					y: settings.positions?.boyfriend?.y ?? 155,
+					maxWidth: settings.positions?.boyfriend?.maxWidth ?? 230,
+				},
+				girlfriend: {
+					x: settings.positions?.girlfriend?.x ?? 930,
+					y: settings.positions?.girlfriend?.y ?? 175,
+					maxWidth: settings.positions?.girlfriend?.maxWidth ?? 190,
+				},
+			};
+
 			const positions = [
-				{ text: girlfriend, x: 700, y: 215, maxWidth: 220 },
-				{ text: boyfriend, x: 440, y: 300, maxWidth: 200 },
-				{ text: newGirl, x: 210, y: 175, maxWidth: 200 },
+				{ text: newGirl, ...rolePositions.newGirl },
+				{ text: boyfriend, ...rolePositions.boyfriend },
+				{ text: girlfriend, ...rolePositions.girlfriend },
 			];
 
 			for (const position of positions) {

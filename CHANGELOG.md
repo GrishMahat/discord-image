@@ -1,5 +1,27 @@
 # Changelog
 
+## [Unreleased]
+### Added
+- New meme generators:
+  - `securityCamera(image, label?)`
+  - `twoButtons(button1, button2, bottomText, options?)`
+  - `alwaysHasBeen({ planet?, reveal?, ...options })`
+- New bundled meme assets:
+  - `src/assets/two-buttons.jpg`
+  - `src/assets/always-has-been.png`
+- Public export wiring for the new generators across root, `modules`, and `fun` entry points.
+- Sample generation coverage for the new generators in `scripts/generate-all.js`.
+
+### Changed
+- `distractedBoyfriend(...)` label mapping and text anchors were corrected to match the actual template subjects.
+- `distractedBoyfriend(...)` now supports manual per-role label placement through `options.positions`.
+- `alwaysHasBeen(...)` supports text, image, or both in the planet and reveal slots.
+- `twoButtons(...)` text placement was tuned to better follow the slanted button panels and lower caption area.
+
+### Documentation
+- README API surface updated for `securityCamera`, `twoButtons`, and `alwaysHasBeen`.
+- Added README usage example for `alwaysHasBeen(...)`.
+
 ## [0.1.6] - 2026-03-10
 ### Added
 - New npm scripts for generation checks:

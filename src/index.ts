@@ -10,12 +10,14 @@ import { pixelate } from "./modules/filters/pixelate";
 import { sepia } from "./modules/filters/sepia";
 import { sticker } from "./modules/filters/sticker";
 import { wave } from "./modules/filters/wave";
+import { alwaysHasBeen } from "./modules/fun/alwaysHasBeen";
 import { distractedBoyfriend } from "./modules/fun/distractedBoyfriend";
 import { drake } from "./modules/fun/drake";
 import { level } from "./modules/fun/level";
 // fun
 import { Music } from "./modules/fun/music";
 import { Quote } from "./modules/fun/quote";
+import { twoButtons } from "./modules/fun/twoButtons";
 import {
 	WelcomeCardBuilder,
 	WelcomeCardOptions,
@@ -46,6 +48,7 @@ import { lisaPresentation } from "./modules/image/lisaPresentation";
 import { notStonk } from "./modules/image/notStonk";
 import { partyHat } from "./modules/image/partyHat";
 import { rip } from "./modules/image/rip";
+import { securityCamera } from "./modules/image/securityCamera";
 import { snyder } from "./modules/image/snyder";
 import { spank } from "./modules/image/spank";
 import { stonk } from "./modules/image/stonk";
@@ -102,6 +105,7 @@ export {
 	spank,
 	snyder,
 	rip,
+	securityCamera,
 	notStonk,
 	partyHat,
 	lisaPresentation,
@@ -115,6 +119,8 @@ export {
 	Delete,
 	Music,
 	Quote,
+	alwaysHasBeen,
+	twoButtons,
 	drake,
 	distractedBoyfriend,
 	level,
@@ -136,6 +142,10 @@ export {
 	getRegisteredAssets,
 };
 
+export type {
+	AlwaysHasBeenOptions,
+	AlwaysHasBeenSlot,
+} from "./modules/fun/alwaysHasBeen";
 export type { WelcomeCardMetaItem } from "./modules/fun/welcomeCard";
 
 // Export level as RankCard
@@ -169,6 +179,7 @@ const dig = {
 	spank,
 	snyder,
 	rip,
+	securityCamera,
 	notStonk,
 	partyHat,
 	lisaPresentation,
@@ -182,6 +193,8 @@ const dig = {
 	Delete,
 	Music,
 	Quote,
+	alwaysHasBeen,
+	twoButtons,
 	drake,
 	distractedBoyfriend,
 	level,

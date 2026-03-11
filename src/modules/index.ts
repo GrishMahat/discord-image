@@ -15,12 +15,14 @@ export { sepia } from "./filters/sepia";
 export { sticker } from "./filters/sticker";
 export { wave } from "./filters/wave";
 export * as fun from "./fun";
+export { alwaysHasBeen } from "./fun/alwaysHasBeen";
 export { distractedBoyfriend } from "./fun/distractedBoyfriend";
 export { drake } from "./fun/drake";
 export { level } from "./fun/level";
 // Fun/Utility
 export { Music } from "./fun/music";
 export { Quote } from "./fun/quote";
+export { twoButtons } from "./fun/twoButtons";
 export { WelcomeCardBuilder, welcomeCard } from "./fun/welcomeCard";
 export * as gif from "./gif";
 // GIFs
@@ -48,6 +50,7 @@ export { lisaPresentation } from "./image/lisaPresentation";
 export { notStonk } from "./image/notStonk";
 export { partyHat } from "./image/partyHat";
 export { rip } from "./image/rip";
+export { securityCamera } from "./image/securityCamera";
 export { snyder } from "./image/snyder";
 export { spank } from "./image/spank";
 export { stonk } from "./image/stonk";
